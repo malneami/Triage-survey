@@ -5,8 +5,7 @@
 export const WEBHOOK_URL =
   "https://script.google.com/macros/s/AKfycbwM0TyzEoUW3PjYEAPqG9xumS7GSGs3wmOop8sMIXH2IqK1GVVrgxLwOjmao500PEg/exec";
 
-export const HMG_LOGO_URL = "/manus-storage/hmg-logo_4945d2a6.png";
-
+export const HMG_LOGO_URL = `${import.meta.env.BASE_URL}hmg-logo.jpg`;
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 export type Lang = "en" | "ar";
