@@ -6,6 +6,7 @@ export const WEBHOOK_URL =
   "https://script.google.com/macros/s/AKfycbwM0TyzEoUW3PjYEAPqG9xumS7GSGs3wmOop8sMIXH2IqK1GVVrgxLwOjmao500PEg/exec";
 
 export const HMG_LOGO_URL = `${import.meta.env.BASE_URL}hmg-logo.jpg`;
+
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 export type Lang = "en" | "ar";
@@ -23,13 +24,14 @@ export interface Question {
   en: string;
   ar: string;
   hint?: { en: string; ar: string };
-  type: "radio" | "scale" | "text" | "textarea";
+  type: "radio" | "scale" | "text" | "textarea" | "checkbox";
   options?: Option[];
   scaleMin?: number;
   scaleMax?: number;
   scaleMinLabel?: { en: string; ar: string };
   scaleMaxLabel?: { en: string; ar: string };
-  twoCol?: boolean;     // render options in 2-column grid
+  twoCol?: boolean;
+  maxSelect?: number;  // for checkbox: maximum selections allowed     // render options in 2-column grid
   minLength?: number;   // for text/textarea validation
 }
 
@@ -53,11 +55,9 @@ export const EXPERIENCE_OPTIONS: Option[] = [
   { value: "8+",   en: "8+ years",         ar: "٨+ سنوات" },
 ];
 
-// ─── Part A: Triage Nurses ────────────────────────────────────────────────────
-// sec-A1 → sec-A2 → sec-A3
+// ─── Part A: Triage Nurses (a1–a13) ──────────────────────────────────────────
 
 export const PART_A_SECTIONS: Section[] = [
-  // ── Section A1: Last Shift ──────────────────────────────────────────────────
   {
     id: "sec-A1",
     titleEn: "The Last Shift",
@@ -68,7 +68,7 @@ export const PART_A_SECTIONS: Section[] = [
     color: "#0FA89B",
     questions: [
       {
-        id: "q3",
+        id: "a1",
         en: "During your last busy shift, how long did it take from patient arrival to CTAS assignment?",
         ar: "خلال آخر نوبة مزدحمة، كم استغرق الفرز من وصول المريض حتى تحديد مستوى CTAS؟",
         type: "radio",
@@ -80,7 +80,7 @@ export const PART_A_SECTIONS: Section[] = [
         ],
       },
       {
-        id: "q4",
+        id: "a2",
         en: "What made triage hardest that shift? (Pick ONE)",
         ar: "ما الذي جعل الفرز أصعب في تلك النوبة؟ (اختر واحداً)",
         type: "radio",
@@ -95,7 +95,7 @@ export const PART_A_SECTIONS: Section[] = [
         ],
       },
       {
-        id: "q5",
+        id: "a3",
         en: "In the last month, how many times did you feel unsure about a CTAS level?",
         ar: "خلال الشهر الماضي، كم مرة شعرت بعدم اليقين حول مستوى CTAS؟",
         type: "radio",
@@ -107,7 +107,7 @@ export const PART_A_SECTIONS: Section[] = [
         ],
       },
       {
-        id: "q6",
+        id: "a4",
         en: "When unsure — what did you ACTUALLY do?",
         ar: "عندما كنت غير متأكد — ماذا فعلت فعلاً؟",
         type: "radio",
@@ -123,34 +123,63 @@ export const PART_A_SECTIONS: Section[] = [
           { value: "movedon",   en: "Moved on and hoped for best",    ar: "تابعت وأملت في الأفضل",   emoji: "⏩" },
         ],
       },
-    ],
-  },
-
-  // ── Section A2: Workaround & Tools ─────────────────────────────────────────
-  {
-    id: "sec-A2",
-    titleEn: "Workaround & Tools",
-    titleAr: "الحلول والأدوات",
-    subtitleEn: "How you currently cope with triage challenges",
-    subtitleAr: "كيف تتعامل حالياً مع تحديات الفرز",
-    icon: "🛠",
-    color: "#6B4FBB",
-    questions: [
       {
-        id: "q7",
-        en: "What do you currently use to help with CTAS decisions?",
-        ar: "ما الذي تستخدمه حالياً للمساعدة في قرارات CTAS؟",
+        id: "a5",
+        en: "Think of the last time you were unsure and had to assign a level anyway — what happened next?",
+        ar: "فكر في آخر مرة كنت فيها غير متأكد واضطررت لتحديد المستوى على أي حال — ماذا حدث بعد ذلك؟",
         type: "radio",
         options: [
-          { value: "memory",    en: "My memory / training",  ar: "ذاكرتي / تدريبي",        emoji: "🧠" },
-          { value: "paper",     en: "Paper reference card",  ar: "بطاقة مرجعية ورقية",     emoji: "📄" },
-          { value: "colleague2",en: "Ask a colleague",       ar: "أسأل زميلاً",             emoji: "🤝" },
-          { value: "app",       en: "A mobile app",          ar: "تطبيق جوال",              emoji: "📱" },
-          { value: "nothing",   en: "Nothing — I just decide", ar: "لا شيء — أقرر مباشرة", emoji: "⚡" },
+          { value: "nothing",   en: "Nothing — it turned out fine",      ar: "لا شيء — سارت الأمور جيداً",   emoji: "🟢" },
+          { value: "retriaged", en: "Patient was re-triaged later",      ar: "أعيد فرز المريض لاحقاً",       emoji: "🔁" },
+          { value: "delay",     en: "There was a delay in care",         ar: "حدث تأخير في الرعاية",          emoji: "⏳" },
+          { value: "corrected", en: "A colleague corrected the level",   ar: "صحح زميل المستوى",              emoji: "🧑‍⚕️" },
+          { value: "complaint", en: "Patient/family complaint",          ar: "شكوى من المريض أو الأسرة",     emoji: "📣" },
+          { value: "unknown",   en: "I don't know what happened",        ar: "لا أعرف ماذا حدث",              emoji: "❔" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "sec-A2",
+    titleEn: "Tools & Workarounds",
+    titleAr: "الأدوات والحلول البديلة",
+    subtitleEn: "How you currently cope with triage decisions",
+    subtitleAr: "كيف تتعامل حالياً مع قرارات الفرز",
+    icon: "🧰",
+    color: "#6B46A1",
+    questions: [
+      {
+        id: "a6",
+        en: "What do you have available at the triage station? (Select all that apply)",
+        ar: "ما الذي لديك في محطة الفرز؟ (اختر كل ما ينطبق)",
+        type: "checkbox",
+        options: [
+          { value: "paper",     en: "Paper CTAS reference card",     ar: "بطاقة مرجعية ورقية",   emoji: "📋" },
+          { value: "screen",    en: "Hospital protocol on screen",   ar: "بروتوكول على الشاشة",  emoji: "🖥️" },
+          { value: "colleague", en: "Experienced colleague nearby",  ar: "زميل متمرس قريب",      emoji: "🧑‍⚕️" },
+          { value: "phone",     en: "CTAS reference on my phone",    ar: "مرجع على الهاتف",      emoji: "📱" },
+          { value: "nothing",   en: "Nothing structured",            ar: "لا شيء منظم",          emoji: "❌" },
         ],
       },
       {
-        id: "q8",
+        id: "a7",
+        en: "Which do you ACTUALLY use during a busy shift? (Optional)",
+        ar: "ما الذي تستخدمه فعلاً أثناء النوبة المزدحمة؟ (اختياري)",
+        hint: {
+          en: "Be honest — the gap between what exists and what gets used is exactly what we need to learn",
+          ar: "كن صادقاً — الفجوة بين ما هو موجود وما يُستخدم فعلاً هي بالضبط ما نحتاج معرفته",
+        },
+        type: "checkbox",
+        options: [
+          { value: "paper",     en: "Paper CTAS reference card",     ar: "بطاقة مرجعية ورقية",   emoji: "📋" },
+          { value: "screen",    en: "Hospital protocol on screen",   ar: "بروتوكول على الشاشة",  emoji: "🖥️" },
+          { value: "colleague", en: "Experienced colleague nearby",  ar: "زميل متمرس قريب",      emoji: "🧑‍⚕️" },
+          { value: "phone",     en: "CTAS reference on my phone",    ar: "مرجع على الهاتف",      emoji: "📱" },
+          { value: "none",      en: "None of them",                  ar: "لا شيء منها",          emoji: "🚫" },
+        ],
+      },
+      {
+        id: "a8",
         en: "How confident are you in your CTAS decisions on a typical shift?",
         ar: "ما مدى ثقتك بقرارات CTAS في نوبة عمل عادية؟",
         type: "scale",
@@ -160,44 +189,17 @@ export const PART_A_SECTIONS: Section[] = [
         scaleMaxLabel: { en: "Very confident", ar: "واثق جداً" },
       },
       {
-        id: "q9",
-        en: "Describe a situation where a decision-support tool would have helped you most.",
-        ar: "صف موقفاً كانت فيه أداة دعم القرار ستساعدك أكثر.",
-        type: "textarea",
-        hint: {
-          en: "At least 10 characters — be specific",
-          ar: "١٠ أحرف على الأقل — كن محدداً",
-        },
-        minLength: 10,
-      },
-    ],
-  },
-
-  // ── Section A3: Tools & System ──────────────────────────────────────────────
-  {
-    id: "sec-A3",
-    titleEn: "Tools & System",
-    titleAr: "الأدوات والنظام",
-    subtitleEn: "Your preferences and satisfaction",
-    subtitleAr: "تفضيلاتك ومستوى رضاك",
-    icon: "💬",
-    color: "#E8A020",
-    questions: [
-      {
-        id: "q10",
-        en: "What format would you prefer for a triage support tool?",
-        ar: "ما الشكل المفضل لأداة دعم الفرز؟",
-        type: "radio",
-        twoCol: true,
-        options: [
-          { value: "mobile",  en: "Mobile app",              ar: "تطبيق جوال",              emoji: "📱" },
-          { value: "screen",  en: "Screen at triage station", ar: "شاشة عند محطة الفرز",    emoji: "🖥" },
-          { value: "voice",   en: "Voice assistant",          ar: "مساعد صوتي",              emoji: "🎙" },
-          { value: "badge",   en: "Wearable / badge device",  ar: "جهاز يُلبس / شارة",      emoji: "📟" },
-        ],
+        id: "a9",
+        en: "How satisfied are you with the current triage process at HMG?",
+        ar: "ما مدى رضاك عن عملية الفرز الحالية في HMG؟",
+        type: "scale",
+        scaleMin: 1,
+        scaleMax: 5,
+        scaleMinLabel: { en: "Very dissatisfied", ar: "غير راضٍ جداً" },
+        scaleMaxLabel: { en: "Very satisfied",    ar: "راضٍ جداً" },
       },
       {
-        id: "q11",
+        id: "a10",
         en: "Do you receive feedback on your triage decisions?",
         ar: "هل تتلقى تغذية راجعة على قرارات الفرز؟",
         type: "radio",
@@ -208,18 +210,19 @@ export const PART_A_SECTIONS: Section[] = [
           { value: "never2",    en: "Never",          ar: "أبداً",         emoji: "🔴" },
         ],
       },
+    ],
+  },
+  {
+    id: "sec-A3",
+    titleEn: "Improvement & Your Story",
+    titleAr: "التحسين وقصتك",
+    subtitleEn: "Your experience in your own words",
+    subtitleAr: "تجربتك بكلماتك",
+    icon: "✍️",
+    color: "#CC2229",
+    questions: [
       {
-        id: "q12",
-        en: "How satisfied are you with the current triage process at HMG?",
-        ar: "ما مدى رضاك عن عملية الفرز الحالية في HMG؟",
-        type: "scale",
-        scaleMin: 1,
-        scaleMax: 5,
-        scaleMinLabel: { en: "Very dissatisfied", ar: "غير راضٍ جداً" },
-        scaleMaxLabel: { en: "Very satisfied",    ar: "راضٍ جداً" },
-      },
-      {
-        id: "q13",
+        id: "a11",
         en: "What single change would most improve triage quality?",
         ar: "ما التغيير الواحد الذي سيحسّن جودة الفرز أكثر؟",
         type: "radio",
@@ -231,26 +234,41 @@ export const PART_A_SECTIONS: Section[] = [
           { value: "space",     en: "Better physical space", ar: "مكان أفضل",            emoji: "🏥" },
         ],
       },
+      {
+        id: "a12",
+        en: "Tell us about a SPECIFIC PATIENT where triage felt genuinely difficult. What happened? What made it hard? What did you do?",
+        ar: "أخبرنا عن حالة مريض محدد شعرت فيها أن الفرز كان صعباً فعلاً. ماذا حدث؟ ما الذي جعله صعباً؟ ماذا فعلت؟",
+        hint: {
+          en: "A real case, no names or file numbers — this is the most valuable answer in the survey",
+          ar: "حالة حقيقية، بدون أسماء أو أرقام ملفات — هذه أهم إجابة في الاستبيان",
+        },
+        type: "textarea",
+        minLength: 10,
+      },
+      {
+        id: "a13",
+        en: "Anything else you'd like to share about triage challenges? (Optional)",
+        ar: "هل هناك شيء آخر تود مشاركته عن تحديات الفرز؟ (اختياري)",
+        type: "textarea",
+      },
     ],
   },
 ];
 
-// ─── Part B: Physicians / Charge Nurses / Managers ───────────────────────────
-// sec-B1 → sec-B2
+// ─── Part B: Receivers / Physicians (b1–b10) ─────────────────────────────────
 
 export const PART_B_SECTIONS: Section[] = [
-  // ── Section B1: Trust & Impact ──────────────────────────────────────────────
   {
     id: "sec-B1",
-    titleEn: "Trust & Impact",
-    titleAr: "الثقة والأثر",
-    subtitleEn: "Your perspective on triage quality",
-    subtitleAr: "منظورك حول جودة الفرز",
-    icon: "📊",
-    color: "#0FA89B",
+    titleEn: "What You Observe",
+    titleAr: "ما تلاحظه",
+    subtitleEn: "Frequency and real consequences of mis-triage",
+    subtitleAr: "تكرار الفرز الخاطئ وعواقبه الفعلية",
+    icon: "👁",
+    color: "#CC2229",
     questions: [
       {
-        id: "qb3",
+        id: "b1",
         en: "How often do you see patients who were mis-triaged?",
         ar: "كم مرة ترى مرضى تم فرزهم بشكل خاطئ؟",
         type: "radio",
@@ -262,30 +280,35 @@ export const PART_B_SECTIONS: Section[] = [
         ],
       },
       {
-        id: "qb4",
-        en: "What is the most common consequence of mis-triage you observe?",
-        ar: "ما أكثر عواقب الفرز الخاطئ شيوعاً التي تلاحظها؟",
-        type: "radio",
+        id: "b2",
+        en: "When a patient is mis-triaged, what are the most common consequences you observe? (Choose the TOP 2)",
+        ar: "عندما يُفرز المريض بشكل خاطئ، ما أكثر العواقب التي تلاحظها؟ (اختر أهم اثنتين)",
+        type: "checkbox",
+        maxSelect: 2,
         options: [
-          { value: "delay",      en: "Delayed treatment",        ar: "تأخر العلاج",              emoji: "⏰" },
-          { value: "overcrowd",  en: "Overcrowded waiting area", ar: "ازدحام منطقة الانتظار",    emoji: "👥" },
-          { value: "escalation", en: "Unexpected escalation",    ar: "تصعيد غير متوقع",          emoji: "📈" },
-          { value: "complaint",  en: "Patient complaint",        ar: "شكوى مريض",                emoji: "😤" },
-          { value: "none",       en: "None observed",            ar: "لا شيء ملحوظ",             emoji: "✅" },
+          { value: "delay",      en: "Delayed treatment — waited longer than their true acuity required",            ar: "تأخر العلاج — انتظر المريض أطول مما تتطلبه حالته الفعلية",           emoji: "⏳" },
+          { value: "overcrowd",  en: "Overcrowding — occupied a higher-acuity bed/area or joined the wrong queue",   ar: "الازدحام — شغل سريراً أو منطقة أعلى من حاجته أو أُضيف لقائمة خاطئة",  emoji: "🛏️" },
+          { value: "escalation", en: "Escalation — deteriorated and required urgent upgrade of care",                ar: "تصعيد — تدهورت حالته واحتاج رفع مستوى الرعاية بشكل عاجل",             emoji: "🚨" },
+          { value: "complaint",  en: "Complaint — formal or informal complaint about waiting or handling",           ar: "شكوى — شكوى رسمية أو غير رسمية بسبب الانتظار أو التعامل",             emoji: "📣" },
+          { value: "safety",     en: "Safety incident — OVR/incident report filed, or a near-miss/harm occurred",    ar: "حادث سلامة — رُفع تقرير حادث (OVR) أو وقع ضرر أو حدث وشيك",           emoji: "⚠️" },
+          { value: "none",       en: "None — I rarely observe meaningful consequences",                              ar: "لا شيء — نادراً ما ألاحظ عواقب مهمة",                                  emoji: "✅" },
         ],
       },
       {
-        id: "qb5",
-        en: "How satisfied are you with the current triage system's accuracy?",
-        ar: "ما مدى رضاك عن دقة نظام الفرز الحالي؟",
-        type: "scale",
-        scaleMin: 1,
-        scaleMax: 5,
-        scaleMinLabel: { en: "Very dissatisfied", ar: "غير راضٍ جداً" },
-        scaleMaxLabel: { en: "Very satisfied",    ar: "راضٍ جداً" },
+        id: "b3",
+        en: "Think of the most recent mis-triaged patient you received — what did it actually cost? (Select ALL that apply)",
+        ar: "فكر في آخر مريض استلمته كان فرزه خاطئاً — ماذا كلّف فعلياً؟ (اختر كل ما ينطبق)",
+        type: "checkbox",
+        options: [
+          { value: "time",    en: "Extra time",           ar: "وقت إضافي",           emoji: "⏱️" },
+          { value: "workup",  en: "Repeated workup",      ar: "إعادة فحوصات",        emoji: "🔁" },
+          { value: "bed",     en: "Bed misallocation",    ar: "سوء توزيع الأسرّة",   emoji: "🛏️" },
+          { value: "harm",    en: "Harm or near-miss",    ar: "ضرر أو حدث وشيك",     emoji: "⚠️" },
+          { value: "nothing", en: "Nothing significant",  ar: "لا شيء مهم",          emoji: "✅" },
+        ],
       },
       {
-        id: "qb6",
+        id: "b4",
         en: "Does the current triage process affect patient flow in your area?",
         ar: "هل تؤثر عملية الفرز الحالية على تدفق المرضى في منطقتك؟",
         type: "radio",
@@ -297,87 +320,114 @@ export const PART_B_SECTIONS: Section[] = [
       },
     ],
   },
-
-  // ── Section B2: Signal & Decision ──────────────────────────────────────────
   {
     id: "sec-B2",
-    titleEn: "Signal & Decision",
-    titleAr: "المؤشر والقرار",
-    subtitleEn: "Your view on AI-assisted decision support",
-    subtitleAr: "رأيك في دعم القرار بمساعدة الذكاء الاصطناعي",
-    icon: "🤖",
-    color: "#CC2229",
+    titleEn: "What You Actually Do",
+    titleAr: "ما تفعله فعلاً",
+    subtitleEn: "Behavior, not opinion",
+    subtitleAr: "السلوك، لا الرأي",
+    icon: "🩺",
+    color: "#1A2B4A",
     questions: [
       {
-        id: "qb7",
-        en: "Would an AI-assisted triage tool benefit your department?",
-        ar: "هل ستفيد أداة فرز بمساعدة الذكاء الاصطناعي قسمك؟",
+        id: "b5",
+        en: "How often do you independently re-assess a patient's CTAS level after receiving them?",
+        ar: "كم مرة تعيد تقييم مستوى CTAS للمريض بشكل مستقل بعد استلامه؟",
         type: "radio",
         options: [
-          { value: "yes2",   en: "Yes, strongly agree",     ar: "نعم، أوافق بشدة",           emoji: "✅" },
-          { value: "maybe2", en: "Possibly",                ar: "ربما",                       emoji: "🤔" },
-          { value: "no3",    en: "No",                      ar: "لا",                         emoji: "❌" },
-          { value: "unsure", en: "Need more information",   ar: "أحتاج مزيداً من المعلومات", emoji: "ℹ️" },
+          { value: "always",    en: "Almost always",                    ar: "دائماً تقريباً",       emoji: "🔴" },
+          { value: "often",     en: "Often",                            ar: "كثيراً",               emoji: "🟠" },
+          { value: "sometimes", en: "Sometimes",                        ar: "أحياناً",              emoji: "🟡" },
+          { value: "rarely",    en: "Rarely — I trust the triage level", ar: "نادراً — أثق بالمستوى", emoji: "🟢" },
         ],
       },
       {
-        id: "qb8",
-        en: "What is your biggest concern about AI-assisted triage?",
-        ar: "ما أكبر مخاوفك من الفرز بمساعدة الذكاء الاصطناعي؟",
+        id: "b6",
+        en: "Has a patient's CTAS level ever not matched what you found clinically?",
+        ar: "هل حدث أن مستوى CTAS لم يتوافق مع ما وجدته سريرياً؟",
         type: "radio",
         options: [
-          { value: "accuracy2",  en: "Accuracy / reliability",      ar: "الدقة / الموثوقية",          emoji: "🎯" },
-          { value: "liability",  en: "Legal liability",              ar: "المسؤولية القانونية",        emoji: "⚖️" },
-          { value: "adoption",   en: "Staff resistance to change",   ar: "مقاومة الموظفين للتغيير",   emoji: "🚧" },
-          { value: "cost",       en: "Cost / budget",                ar: "التكلفة / الميزانية",        emoji: "💰" },
-          { value: "noconcern",  en: "No major concerns",            ar: "لا مخاوف كبيرة",            emoji: "✅" },
+          { value: "yes-reg",  en: "Yes, regularly",      ar: "نعم، بانتظام",     emoji: "🔴" },
+          { value: "yes-many", en: "Yes, more than once", ar: "نعم، أكثر من مرة", emoji: "🟠" },
+          { value: "yes-once", en: "Yes, once",           ar: "نعم، مرة",         emoji: "🟡" },
+          { value: "no",       en: "No",                  ar: "لا",               emoji: "🟢" },
         ],
       },
       {
-        id: "qb9",
-        en: "How likely are you to support adoption of an AI triage tool in your department?",
-        ar: "ما احتمال دعمك لاعتماد أداة فرز بالذكاء الاصطناعي في قسمك؟",
-        type: "scale",
-        scaleMin: 1,
-        scaleMax: 5,
-        scaleMinLabel: { en: "Very unlikely", ar: "غير محتمل جداً" },
-        scaleMaxLabel: { en: "Very likely",   ar: "محتمل جداً" },
+        id: "b7",
+        en: "Tell us about a specific time the CTAS level didn't match what you found. What happened? (Optional — skip if it never happened)",
+        ar: "أخبرنا عن وقت محدد لم يتوافق فيه مستوى CTAS مع ما وجدته. ماذا حدث؟ (اختياري — تجاوز إن لم يحدث)",
+        type: "textarea",
+      },
+      {
+        id: "b8",
+        en: "When a triage level seems wrong — what do you typically do?",
+        ar: "عندما يبدو مستوى الفرز غير صحيح — ماذا تفعل عادةً؟",
+        type: "radio",
+        options: [
+          { value: "silent",   en: "Reassign silently",        ar: "أغير المستوى بصمت",    emoji: "🔇" },
+          { value: "discuss",  en: "Discuss with triage nurse", ar: "أناقش مع ممرضة الفرز", emoji: "💬" },
+          { value: "escalate", en: "Escalate to charge nurse",  ar: "أرفع الأمر للمشرف",    emoji: "📣" },
+          { value: "accept",   en: "Accept and manage",         ar: "أقبل وأتعامل معه",     emoji: "✅" },
+        ],
+      },
+      {
+        id: "b9",
+        en: "Do you ever give feedback to the triage nurse afterward?",
+        ar: "هل تقدم ملاحظات لممرضة الفرز بعد ذلك؟",
+        type: "radio",
+        options: [
+          { value: "regularly", en: "Regularly",  ar: "بانتظام", emoji: "🟢" },
+          { value: "sometimes", en: "Sometimes",  ar: "أحياناً", emoji: "🟡" },
+          { value: "rarely",    en: "Rarely",     ar: "نادراً",  emoji: "🟠" },
+          { value: "never",     en: "Never",      ar: "أبداً",   emoji: "🔴" },
+        ],
+      },
+      {
+        id: "b10",
+        en: "Anything else you'd like to share? (Optional)",
+        ar: "هل هناك شيء آخر تود مشاركته؟ (اختياري)",
+        type: "textarea",
       },
     ],
   },
 ];
 
-// ─── Validation rules per section ────────────────────────────────────────────
+// ─── Validation ───────────────────────────────────────────────────────────────
 
-export const VALIDATION_RULES: Record<string, { id: string; type: "role" | "radio" | "scale" | "text" | "textarea"; minLength?: number }[]> = {
+export const VALIDATION_RULES: Record<string, { id: string; type: "role" | "radio" | "scale" | "text" | "textarea" | "checkbox"; minLength?: number }[]> = {
   "sec-0": [
     { id: "q1", type: "role" },
     { id: "q2", type: "radio" },
   ],
   "sec-A1": [
-    { id: "q3", type: "radio" },
-    { id: "q4", type: "radio" },
-    { id: "q5", type: "radio" },
-    { id: "q6", type: "radio" },
+    { id: "a1", type: "radio" },
+    { id: "a2", type: "radio" },
+    { id: "a3", type: "radio" },
+    { id: "a4", type: "radio" },
+    { id: "a5", type: "radio" },
   ],
   "sec-A2": [
-    { id: "q7",  type: "radio" },
-    { id: "q8",  type: "scale" },
-    { id: "q9",  type: "textarea", minLength: 10 },
+    { id: "a6",  type: "checkbox" },
+    { id: "a8",  type: "scale" },
+    { id: "a9",  type: "scale" },
+    { id: "a10", type: "radio" },
   ],
   "sec-A3": [
-    { id: "q12", type: "scale" },
+    { id: "a11", type: "radio" },
+    { id: "a12", type: "textarea", minLength: 10 },
   ],
   "sec-B1": [
-    { id: "qb3", type: "radio" },
-    { id: "qb4", type: "radio" },
-    { id: "qb5", type: "scale" },
-    { id: "qb6", type: "radio" },
+    { id: "b1", type: "radio" },
+    { id: "b2", type: "checkbox" },
+    { id: "b3", type: "checkbox" },
+    { id: "b4", type: "radio" },
   ],
   "sec-B2": [
-    { id: "qb7", type: "radio" },
-    { id: "qb8", type: "radio" },
-    { id: "qb9", type: "scale" },
+    { id: "b5", type: "radio" },
+    { id: "b6", type: "radio" },
+    { id: "b8", type: "radio" },
+    { id: "b9", type: "radio" },
   ],
 };
 
