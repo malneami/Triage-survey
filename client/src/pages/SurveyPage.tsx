@@ -288,8 +288,7 @@ export default function SurveyPage() {
         .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v ?? "")}`)
         .join("&");
       const url = `${WEBHOOK_URL}?${qs}`;
-      new Image().src = url;
-      fetch(url, { method: "GET", mode: "no-cors" }).catch(() => {});
+      fetch(url, { method: "GET", mode: "no-cors", keepalive: true }).catch(() => {});
     }
     setSubmitted(true);
   }

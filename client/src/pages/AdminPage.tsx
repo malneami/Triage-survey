@@ -46,36 +46,43 @@ interface Stats {
   total: number; partA: number; partB: number;
   timestamps: string[];
   experience: Record<string, number>;
-  q3: Record<string, number>; q4: Record<string, number>;
-  q5: Record<string, number>; q6: Record<string, number>;
-  q7: Record<string, number>; q8: number[];
-  q9: Record<string, number>; q10: Record<string, number>;
-  q11: Record<string, number>; q12: number[];
-  q13: Record<string, number>;
-  qb3: Record<string, number>; qb4: Record<string, number>;
-  qb5: number[]; qb6: Record<string, number>;
-  qb7: Record<string, number>; qb8: Record<string, number>;
-  qb9: number[];
+  // Part A — nurses
+  a1: Record<string, number>; a2: Record<string, number>;
+  a3: Record<string, number>; a4: Record<string, number>;
+  a5: Record<string, number>;
+  a6: Record<string, number>; a7: Record<string, number>;
+  a8: number[]; a9: number[];
+  a10: Record<string, number>; a11: Record<string, number>;
+  a12Stories: string[]; a13Comments: string[];
+  // Part B — receivers
+  b1: Record<string, number>; b2: Record<string, number>;
+  b3: Record<string, number>; b4: Record<string, number>;
+  b5: Record<string, number>; b6: Record<string, number>;
+  b7Stories: string[]; b8: Record<string, number>;
+  b9: Record<string, number>; b10Comments: string[];
 }
 
 // ─── Label Maps ───────────────────────────────────────────────────────────────
 
 const LABELS: Record<string, Record<string, string>> = {
   experience: { lt1: "< 1 year", "1-3": "1–3 yrs", "4-7": "4–7 yrs", "8+": "8+ yrs" },
-  q3: { under2: "< 2 min", "2-5": "2–5 min", "5-10": "5–10 min", "10+": "> 10 min" },
-  q4: { volume: "Patient volume", language: "Language barrier", ctas: "CTAS uncertainty", noref: "No reference tool", docs: "Documentation", other: "Other" },
-  q5: { never: "Never", "1-2": "1–2×/month", "3-5": "3–5×/month", "5+": ">5×/month" },
-  q6: { colleague: "Asked colleague", judgment: "Used judgment", lookup: "Looked it up", safer: "Assigned safer level", movedon: "Moved on" },
-  q7: { memory: "Memory/training", paper: "Paper card", colleague2: "Ask colleague", app: "Mobile app", nothing: "Nothing" },
-  q9: { yes: "Yes, definitely", maybe: "Maybe", no: "No" },
-  q10: { mobile: "Mobile app", screen: "Station screen", voice: "Voice assistant", badge: "Wearable/badge" },
-  q11: { regularly: "Regularly", sometimes: "Sometimes", rarely: "Rarely", never2: "Never" },
-  q13: { training: "More training", staff: "More staff", tool2: "Better tool", protocol: "Clearer protocols", space: "Better space" },
-  qb3: { daily: "Daily", weekly: "Weekly", monthly: "Monthly", rarely2: "Rarely" },
-  qb4: { delay: "Delayed treatment", overcrowd: "Overcrowding", escalation: "Escalation", complaint: "Patient complaint", none: "None observed" },
-  qb6: { "yes-major": "Yes, significantly", "yes-minor": "Yes, slightly", no2: "No impact" },
-  qb7: { yes2: "Yes, strongly", maybe2: "Possibly", no3: "No", unsure: "Need more info" },
-  qb8: { accuracy2: "Accuracy/reliability", liability: "Legal liability", adoption: "Staff resistance", cost: "Cost/budget", noconcern: "No concerns" },
+  a1: { under2: "< 2 min", "2-5": "2–5 min", "5-10": "5–10 min", "10+": "> 10 min" },
+  a2: { volume: "Patient volume", language: "Language barrier", ctas: "CTAS uncertainty", noref: "No reference tool", docs: "Documentation", other: "Other" },
+  a3: { never: "Never", "1-2": "1–2×/month", "3-5": "3–5×/month", "5+": ">5×/month" },
+  a4: { colleague: "Asked colleague", judgment: "Used judgment", lookup: "Looked it up", safer: "Assigned safer level", movedon: "Moved on" },
+  a5: { nothing: "Nothing — fine", retriaged: "Re-triaged later", delay: "Delay in care", corrected: "Colleague corrected", complaint: "Complaint", unknown: "Unknown outcome" },
+  a6: { paper: "Paper CTAS card", screen: "Protocol on screen", colleague: "Experienced colleague", phone: "Reference on phone", nothing: "Nothing structured" },
+  a7: { paper: "Paper CTAS card", screen: "Protocol on screen", colleague: "Experienced colleague", phone: "Reference on phone", none: "None of them" },
+  a10: { regularly: "Regularly", sometimes: "Sometimes", rarely: "Rarely", never2: "Never" },
+  a11: { training: "More training", staff: "More staff", tool2: "Better tool", protocol: "Clearer protocols", space: "Better space" },
+  b1: { daily: "Daily", weekly: "Weekly", monthly: "Monthly", rarely2: "Rarely" },
+  b2: { delay: "Delayed treatment", overcrowd: "Overcrowding", escalation: "Escalation", complaint: "Complaint", safety: "Safety incident", none: "None" },
+  b3: { time: "Extra time", workup: "Repeated workup", bed: "Bed misallocation", harm: "Harm / near-miss", nothing: "Nothing significant" },
+  b4: { "yes-major": "Yes, significantly", "yes-minor": "Yes, slightly", no2: "No impact" },
+  b5: { always: "Almost always", often: "Often", sometimes: "Sometimes", rarely: "Rarely — trusts level" },
+  b6: { "yes-reg": "Yes, regularly", "yes-many": "Yes, more than once", "yes-once": "Yes, once", no: "No" },
+  b8: { silent: "Reassign silently", discuss: "Discuss with nurse", escalate: "Escalate to charge", accept: "Accept and manage" },
+  b9: { regularly: "Regularly", sometimes: "Sometimes", rarely: "Rarely", never: "Never" },
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -113,23 +120,33 @@ function topAnswer(obj: Record<string, number>, labelMap: Record<string, string>
   const k = topKey(obj);
   return k ? (labelMap[k] ?? k) : "—";
 }
+function sumKeys(obj: Record<string, number>, keys: string[]): number {
+  return keys.reduce((acc, k) => acc + (obj[k] ?? 0), 0);
+}
 
 function buildStats(rows: SheetRow[]): Stats {
   const empty = (): Record<string, number> => ({});
   const s: Stats = {
     total: rows.length, partA: 0, partB: 0,
     timestamps: [], experience: empty(),
-    q3: empty(), q4: empty(), q5: empty(), q6: empty(),
-    q7: empty(), q8: [], q9: empty(), q10: empty(),
-    q11: empty(), q12: [], q13: empty(),
-    qb3: empty(), qb4: empty(), qb5: [], qb6: empty(),
-    qb7: empty(), qb8: empty(), qb9: [],
+    a1: empty(), a2: empty(), a3: empty(), a4: empty(), a5: empty(),
+    a6: empty(), a7: empty(), a8: [], a9: [],
+    a10: empty(), a11: empty(), a12Stories: [], a13Comments: [],
+    b1: empty(), b2: empty(), b3: empty(), b4: empty(),
+    b5: empty(), b6: empty(), b7Stories: [], b8: empty(),
+    b9: empty(), b10Comments: [],
   };
   const inc = (obj: Record<string, number>, key: string) => {
     if (!key) return; obj[key] = (obj[key] ?? 0) + 1;
   };
+  const incMulti = (obj: Record<string, number>, val: string) => {
+    (val ?? "").split(",").map((v) => v.trim()).filter(Boolean).forEach((v) => inc(obj, v));
+  };
   const push = (arr: number[], val: string) => {
     const n = Number(val); if (!isNaN(n) && val !== "") arr.push(n);
+  };
+  const story = (arr: string[], val: string) => {
+    if ((val ?? "").trim().length > 3) arr.push(val.trim());
   };
   rows.forEach((row) => {
     const part = (row.part ?? "").toUpperCase();
@@ -137,18 +154,25 @@ function buildStats(rows: SheetRow[]): Stats {
     if (row.timestamp) s.timestamps.push(row.timestamp);
     inc(s.experience, row.experience);
     if (part === "A") {
-      inc(s.q3, row.q3); inc(s.q4, row.q4); inc(s.q5, row.q5); inc(s.q6, row.q6);
-      inc(s.q7, row.q7); push(s.q8, row.q8); inc(s.q9, row.q9); inc(s.q10, row.q10);
-      inc(s.q11, row.q11); push(s.q12, row.q12); inc(s.q13, row.q13);
+      inc(s.a1, row.a1); inc(s.a2, row.a2); inc(s.a3, row.a3);
+      inc(s.a4, row.a4); inc(s.a5, row.a5);
+      incMulti(s.a6, row.a6); incMulti(s.a7, row.a7);
+      push(s.a8, row.a8); push(s.a9, row.a9);
+      inc(s.a10, row.a10); inc(s.a11, row.a11);
+      story(s.a12Stories, row.a12); story(s.a13Comments, row.a13);
     } else if (part === "B") {
-      inc(s.qb3, row.qb3); inc(s.qb4, row.qb4); push(s.qb5, row.qb5); inc(s.qb6, row.qb6);
-      inc(s.qb7, row.qb7); inc(s.qb8, row.qb8); push(s.qb9, row.qb9);
+      inc(s.b1, row.b1); incMulti(s.b2, row.b2); incMulti(s.b3, row.b3);
+      inc(s.b4, row.b4); inc(s.b5, row.b5); inc(s.b6, row.b6);
+      story(s.b7Stories, row.b7); inc(s.b8, row.b8); inc(s.b9, row.b9);
+      story(s.b10Comments, row.b10);
     }
   });
   return s;
 }
 
-// ─── Go/No-Go Scoring Engine ──────────────────────────────────────────────────
+// ─── Problem-Severity Scoring Engine ─────────────────────────────────────────
+// Signals are built ONLY from reported behavior and observed consequences —
+// no preference or tool-interest questions feed the score (Mom Test principle).
 
 interface Signal {
   id: string;
@@ -161,87 +185,86 @@ interface Signal {
 }
 
 function computeGoNoGo(s: Stats): { signals: Signal[]; composite: number; verdict: "GO" | "CONDITIONAL" | "WAIT"; summary: string } {
-  const signals: Signal[] = [];
-  const A = s.partA || 1;
-  const B = s.partB || 1;
+  const A = Math.max(s.partA, 1);
+  const B = Math.max(s.partB, 1);
+  const strength = (score: number): "strong" | "moderate" | "weak" =>
+    score >= 65 ? "strong" : score >= 40 ? "moderate" : "weak";
 
-  // Signal 1: Triage time problem (q3 — nurses taking >2min)
-  const slowTriage = ((s.q3["2-5"] ?? 0) + (s.q3["5-10"] ?? 0) + (s.q3["10+"] ?? 0)) / A * 100;
-  signals.push({
-    id: "triage-time",
-    label: "Triage Time Problem",
-    description: "% of nurses reporting triage takes >2 minutes",
-    score: Math.min(100, slowTriage),
-    weight: 20,
-    strength: slowTriage >= 60 ? "strong" : slowTriage >= 30 ? "moderate" : "weak",
-    evidence: `${Math.round(slowTriage)}% of nurses take >2 min for CTAS assignment`,
-  });
+  // Signal 1 — Triage delay (a1: assignments taking >5 min)
+  const slow = pctNum(sumKeys(s.a1, ["5-10", "10+"]), A);
+  const s1: Signal = {
+    id: "delay", label: "Triage Delay", weight: 15,
+    description: "Nurses reporting >5 min from arrival to CTAS assignment on their last busy shift",
+    score: slow, strength: strength(slow),
+    evidence: `${slow}% of nurses took >5 minutes to assign CTAS`,
+  };
 
-  // Signal 2: CTAS uncertainty frequency (q5)
-  const uncertain = ((s.q5["3-5"] ?? 0) + (s.q5["5+"] ?? 0)) / A * 100;
-  signals.push({
-    id: "uncertainty",
-    label: "CTAS Uncertainty Frequency",
-    description: "% of nurses uncertain about CTAS level 3+ times/month",
-    score: Math.min(100, uncertain),
-    weight: 25,
-    strength: uncertain >= 50 ? "strong" : uncertain >= 25 ? "moderate" : "weak",
-    evidence: `${Math.round(uncertain)}% experience CTAS uncertainty 3+ times/month`,
-  });
+  // Signal 2 — CTAS uncertainty frequency (a3: ≥3 times last month)
+  const unsure = pctNum(sumKeys(s.a3, ["3-5", "5+"]), A);
+  const s2: Signal = {
+    id: "uncertainty", label: "CTAS Uncertainty", weight: 20,
+    description: "Nurses unsure about a CTAS level 3+ times in the last month",
+    score: unsure, strength: strength(unsure),
+    evidence: `${unsure}% of nurses were unsure 3+ times last month`,
+  };
 
-  // Signal 3: Demand for decision support (q9)
-  const wantTool = ((s.q9["yes"] ?? 0) + (s.q9["maybe"] ?? 0) * 0.5) / A * 100;
-  signals.push({
-    id: "demand",
-    label: "Demand for Decision Support",
-    description: "% of nurses who want a decision-support tool",
-    score: Math.min(100, wantTool),
-    weight: 20,
-    strength: wantTool >= 70 ? "strong" : wantTool >= 40 ? "moderate" : "weak",
-    evidence: `${Math.round(wantTool)}% of nurses want or are open to a decision-support tool`,
-  });
+  // Signal 3 — Consequences of uncertainty (a5: anything other than "nothing")
+  const conseqA = pctNum(A - (s.a5["nothing"] ?? 0) - (s.a5["unknown"] ?? 0), A);
+  const s3: Signal = {
+    id: "consequenceA", label: "Uncertainty Consequences", weight: 15,
+    description: "Uncertain assignments followed by re-triage, delay, correction, or complaint",
+    score: conseqA, strength: strength(conseqA),
+    evidence: `${conseqA}% of uncertain cases had a concrete downstream event`,
+  };
 
-  // Signal 4: Mis-triage frequency from physician side (qb3)
-  const misTriage = ((s.qb3["daily"] ?? 0) * 100 + (s.qb3["weekly"] ?? 0) * 70 + (s.qb3["monthly"] ?? 0) * 30) / B;
-  const misPct = Math.min(100, misTriage);
-  signals.push({
-    id: "mis-triage",
-    label: "Mis-Triage Frequency (Physicians)",
-    description: "Weighted frequency of mis-triage observed by physicians",
-    score: misPct,
-    weight: 20,
-    strength: misPct >= 60 ? "strong" : misPct >= 30 ? "moderate" : "weak",
-    evidence: `Top reported frequency: ${topAnswer(s.qb3, LABELS.qb3)}`,
-  });
+  // Signal 4 — Structural tool gap (a6/a7: nothing structured available OR nothing used)
+  const noneAvail = pctNum(s.a6["nothing"] ?? 0, A);
+  const noneUsed = pctNum(s.a7["none"] ?? 0, A);
+  const gap = Math.max(noneAvail, noneUsed);
+  const s4: Signal = {
+    id: "toolgap", label: "Say/Do Tool Gap", weight: 15,
+    description: "Nurses with nothing structured available, or using none of what exists under load",
+    score: gap, strength: strength(gap),
+    evidence: `${noneAvail}% have nothing structured; ${noneUsed}% use none of what exists`,
+  };
 
-  // Signal 5: AI/App benefit perception (qb7)
-  const aiBenefit = ((s.qb7["yes2"] ?? 0) + (s.qb7["maybe2"] ?? 0) * 0.5) / B * 100;
-  signals.push({
-    id: "ai-benefit",
-    label: "AI Tool Benefit Perception",
-    description: "% of physicians/managers who see value in AI-assisted triage",
-    score: Math.min(100, aiBenefit),
-    weight: 15,
-    strength: aiBenefit >= 65 ? "strong" : aiBenefit >= 35 ? "moderate" : "weak",
-    evidence: `${Math.round(aiBenefit)}% of physicians/managers support AI-assisted triage`,
-  });
+  // Signal 5 — Mis-triage burden on receivers (b1 daily/weekly + b3 costly consequences)
+  const freqB = pctNum(sumKeys(s.b1, ["daily", "weekly"]), B);
+  const costB = pctNum(sumKeys(s.b3, ["harm", "workup", "bed"]),
+    Math.max(Object.values(s.b3).reduce((a, b) => a + b, 0), 1));
+  const burden = Math.round(freqB * 0.6 + costB * 0.4);
+  const s5: Signal = {
+    id: "mistriage", label: "Mis-Triage Burden", weight: 20,
+    description: "Receivers seeing mis-triage daily/weekly, with material cost (workup, beds, harm)",
+    score: burden, strength: strength(burden),
+    evidence: `${freqB}% see mis-triage weekly+; ${costB}% of reported costs are material`,
+  };
 
-  // Composite weighted score
-  const totalWeight = signals.reduce((a, s) => a + s.weight, 0);
-  const composite = Math.round(signals.reduce((a, sig) => a + sig.score * sig.weight, 0) / totalWeight);
+  // Signal 6 — Broken feedback loop (a10 rarely/never + b9 rarely/never)
+  const noFbA = pctNum(sumKeys(s.a10, ["rarely", "never2"]), A);
+  const noFbB = pctNum(sumKeys(s.b9, ["rarely", "never"]), B);
+  const loop = Math.round((noFbA + noFbB) / 2);
+  const s6: Signal = {
+    id: "feedback", label: "Broken Feedback Loop", weight: 15,
+    description: "Nurses rarely receive feedback AND receivers rarely give it — no learning happens",
+    score: loop, strength: strength(loop),
+    evidence: `${noFbA}% of nurses rarely/never get feedback; ${noFbB}% of receivers rarely/never give it`,
+  };
 
+  const signals = [s1, s2, s3, s4, s5, s6];
+  const totalWeight = signals.reduce((acc, sg) => acc + sg.weight, 0);
+  const composite = Math.round(signals.reduce((acc, sg) => acc + sg.score * sg.weight, 0) / totalWeight);
   const verdict: "GO" | "CONDITIONAL" | "WAIT" =
-    composite >= 65 ? "GO" : composite >= 40 ? "CONDITIONAL" : "WAIT";
-
+    composite >= 60 ? "GO" : composite >= 40 ? "CONDITIONAL" : "WAIT";
   const summary =
     verdict === "GO"
-      ? "Strong evidence of unmet need and staff readiness. Data supports proceeding with AI-assisted triage tool development."
+      ? "Strong problem evidence: triage uncertainty is frequent, has real consequences, and no structured support or feedback loop exists. Proceed with the TriagePulse POC."
       : verdict === "CONDITIONAL"
-      ? "Moderate signals detected. Consider a pilot program with a focused user group before full deployment."
-      : "Insufficient signal strength. Collect more responses or address identified gaps before committing to development.";
-
+      ? "Moderate problem evidence. Some severity signals are present but not dominant — collect more responses or probe the weak signals before committing full resources."
+      : "Weak problem evidence so far. The reported behavior does not yet justify an intervention — keep collecting responses before deciding.";
   return { signals, composite, verdict, summary };
 }
+
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -265,6 +288,28 @@ function SectionHeader({ title, icon }: { title: string; icon?: string }) {
       <h2 className="text-sm font-bold uppercase tracking-wider flex items-center gap-2" style={{ color: C.navy, fontFamily: "'Space Grotesk', sans-serif" }}>
         {icon && <span>{icon}</span>}{title}
       </h2>
+    </div>
+  );
+}
+
+function StoryCard({ title, stories, color }: { title: string; stories: string[]; color?: string }) {
+  return (
+    <div className="rounded-2xl p-5 shadow-sm border" style={{ background: C.card, borderColor: C.border }}>
+      <h3 className="text-sm font-bold mb-3" style={{ color: color ?? C.navy }}>
+        {title} <span className="font-normal text-gray-400">({stories.length})</span>
+      </h3>
+      {stories.length === 0 ? (
+        <p className="text-xs text-gray-400 italic">No narrative responses yet.</p>
+      ) : (
+        <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+          {stories.map((st, i) => (
+            <div key={i} className="text-xs text-gray-700 leading-relaxed rounded-lg px-3 py-2 border-l-2"
+              style={{ background: C.navyLight, borderLeftColor: color ?? C.teal }}>
+              {st}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -458,22 +503,20 @@ function exportSummaryCSV(stats: Stats, goNoGo: ReturnType<typeof computeGoNoGo>
     ["Total Responses", stats.total],
     ["Part A (Nurses)", stats.partA],
     ["Part B (Physicians/Managers)", stats.partB],
-    ["Avg CTAS Confidence (A)", avg(stats.q8)],
-    ["Avg Triage Satisfaction (A)", avg(stats.q12)],
-    ["Avg Triage Accuracy Satisfaction (B)", avg(stats.qb5)],
-    ["Avg App Adoption Likelihood (B)", avg(stats.qb9)],
+    ["Avg CTAS Confidence (A)", avg(stats.a8)],
+    ["Avg Triage Satisfaction (A)", avg(stats.a9)],
     ["Go/No-Go Composite Score", goNoGo.composite],
     ["Verdict", goNoGo.verdict],
     ["", ""],
     ["Signal", "Score", "Strength", "Evidence"],
     ...goNoGo.signals.map(s => [s.label, s.score + "%", s.strength, s.evidence]),
     ["", ""],
-    ["Top Challenge (Nurses)", topAnswer(stats.q4, LABELS.q4)],
-    ["Current Decision Tool", topAnswer(stats.q7, LABELS.q7)],
-    ["Preferred Tool Format", topAnswer(stats.q10, LABELS.q10)],
-    ["Mis-Triage Frequency (Physicians)", topAnswer(stats.qb3, LABELS.qb3)],
-    ["AI Benefit Perception", topAnswer(stats.qb7, LABELS.qb7)],
-    ["Top AI Concern", topAnswer(stats.qb8, LABELS.qb8)],
+    ["Top Challenge (Nurses)", topAnswer(stats.a2, LABELS.a2)],
+    ["Post-Uncertainty Consequence", topAnswer(stats.a5, LABELS.a5)],
+    ["Top Single Change Requested", topAnswer(stats.a11, LABELS.a11)],
+    ["Mis-Triage Frequency (Receivers)", topAnswer(stats.b1, LABELS.b1)],
+    ["Top Mis-Triage Consequence", topAnswer(stats.b2, LABELS.b2)],
+    ["Action When Level Seems Wrong", topAnswer(stats.b8, LABELS.b8)],
   ];
   const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
   const blob = new Blob([csv], { type: "text/csv" });
@@ -519,10 +562,8 @@ function TabBar({ active, onChange }: { active: Tab; onChange: (t: Tab) => void 
 function DashboardContent({ stats, rawRows }: { stats: Stats; rawRows: SheetRow[] }) {
   const [tab, setTab] = useState<Tab>("overview");
   const goNoGo = computeGoNoGo(stats);
-  const avgConf = avg(stats.q8);
-  const avgSat = avg(stats.q12);
-  const avgAccB = avg(stats.qb5);
-  const avgSupportB = avg(stats.qb9);
+  const avgConf = avg(stats.a8);
+  const avgSat = avg(stats.a9);
   const dashRef = useRef<HTMLDivElement>(null);
 
   // Timeline
@@ -564,10 +605,10 @@ function DashboardContent({ stats, rawRows }: { stats: Stats; rawRows: SheetRow[
                 {[
                   { icon: "⏱", label: "Avg Triage Confidence", value: avgConf ? `${avgConf}/5` : "—", color: C.teal },
                   { icon: "😊", label: "Avg Triage Satisfaction", value: avgSat ? `${avgSat}/5` : "—", color: C.navy },
-                  { icon: "🎯", label: "Top Challenge (Nurses)", value: topAnswer(stats.q4, LABELS.q4), color: C.red },
-                  { icon: "🛠", label: "Current Tool Used", value: topAnswer(stats.q7, LABELS.q7), color: C.purple },
-                  { icon: "📱", label: "Preferred Format", value: topAnswer(stats.q10, LABELS.q10), color: C.teal },
-                  { icon: "🤖", label: "AI Support Perception", value: topAnswer(stats.qb7, LABELS.qb7), color: C.green },
+                  { icon: "🎯", label: "Top Challenge (Nurses)", value: topAnswer(stats.a2, LABELS.a2), color: C.red },
+                  { icon: "⚡", label: "After Uncertainty", value: topAnswer(stats.a5, LABELS.a5), color: C.purple },
+                  { icon: "👁", label: "Mis-Triage Seen (B)", value: topAnswer(stats.b1, LABELS.b1), color: C.red },
+                  { icon: "🔁", label: "Feedback to Nurses (B)", value: topAnswer(stats.b9, LABELS.b9), color: C.green },
                 ].map((item, i) => (
                   <div key={i} className="bg-white rounded-2xl border p-4 shadow-sm flex items-start gap-3" style={{ borderColor: C.border }}>
                     <span className="text-xl mt-0.5">{item.icon}</span>
@@ -620,36 +661,38 @@ function DashboardContent({ stats, rawRows }: { stats: Stats; rawRows: SheetRow[
               <KPICard icon="👥" label="Respondents" value={stats.partA} color={C.teal} />
               <KPICard icon="⭐" label="Avg Confidence" value={avgConf || "—"} sub="CTAS decisions (1–5)" color={C.teal} />
               <KPICard icon="😊" label="Avg Satisfaction" value={avgSat || "—"} sub="Current triage process (1–5)" color={C.navy} />
-              <KPICard icon="📱" label="Preferred Format" value={topAnswer(stats.q10, LABELS.q10)} color={C.purple} />
+              <KPICard icon="🔧" label="Top Requested Change" value={topAnswer(stats.a11, LABELS.a11)} color={C.purple} />
             </div>
           </section>
 
           <section>
             <SectionHeader title="The Last Shift" icon="⏱" />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <BarCard title="Q3 · Time from arrival to CTAS assignment" data={countToBar(stats.q3, LABELS.q3)} color={C.teal} />
-              <BarCard title="Q4 · Biggest triage challenge" data={countToBar(stats.q4, LABELS.q4)} color={C.red} />
-              <BarCard title="Q5 · CTAS uncertainty frequency (last month)" data={countToBar(stats.q5, LABELS.q5)} color={C.amber} />
-              <BarCard title="Q6 · What nurses do when uncertain" data={countToBar(stats.q6, LABELS.q6)} color={C.navy} />
+              <BarCard title="A1 · Time from arrival to CTAS assignment" data={countToBar(stats.a1, LABELS.a1)} color={C.teal} />
+              <BarCard title="A2 · Biggest triage challenge" data={countToBar(stats.a2, LABELS.a2)} color={C.red} />
+              <BarCard title="A3 · CTAS uncertainty frequency (last month)" data={countToBar(stats.a3, LABELS.a3)} color={C.amber} />
+              <BarCard title="A4 · What nurses do when uncertain" data={countToBar(stats.a4, LABELS.a4)} color={C.navy} />
+              <BarCard title="A5 · What happened after an uncertain assignment" data={countToBar(stats.a5, LABELS.a5)} color={C.purple} />
             </div>
           </section>
 
           <section>
             <SectionHeader title="Tools & Support" icon="🛠" />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <BarCard title="Q7 · Current decision-support tool used" data={countToBar(stats.q7, LABELS.q7)} color={C.purple} />
-              <ScaleCard title="Q8 · CTAS decision confidence (1–5)" data={scaleToBar(stats.q8, 1, 5)} avgVal={avgConf} color={C.teal} />
-              <BarCard title="Q9 · Would a real-time tool improve accuracy?" data={countToBar(stats.q9, LABELS.q9)} color={C.green} />
-              <BarCard title="Q10 · Preferred tool format" data={countToBar(stats.q10, LABELS.q10)} color={C.navy} />
+              <BarCard title="A6 · Available at the triage station" data={countToBar(stats.a6, LABELS.a6)} color={C.slate} />
+              <BarCard title="A7 · Actually used during a busy shift" data={countToBar(stats.a7, LABELS.a7)} color={C.teal} />
+              <ScaleCard title="A8 · CTAS decision confidence (1–5)" data={scaleToBar(stats.a8, 1, 5)} avgVal={avgConf} color={C.teal} />
+              <ScaleCard title="A9 · Satisfaction with current triage process (1–5)" data={scaleToBar(stats.a9, 1, 5)} avgVal={avgSat} color={C.navy} />
             </div>
           </section>
 
           <section>
             <SectionHeader title="System Feedback" icon="💬" />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <BarCard title="Q11 · Feedback received on triage decisions" data={countToBar(stats.q11, LABELS.q11)} color={C.amber} />
-              <ScaleCard title="Q12 · Satisfaction with current triage process (1–5)" data={scaleToBar(stats.q12, 1, 5)} avgVal={avgSat} color={C.navy} />
-              <BarCard title="Q13 · Single change to most improve triage quality" data={countToBar(stats.q13, LABELS.q13)} color={C.red} />
+              <BarCard title="A10 · Feedback received on triage decisions" data={countToBar(stats.a10, LABELS.a10)} color={C.amber} />
+              <BarCard title="A11 · Single change to most improve triage quality" data={countToBar(stats.a11, LABELS.a11)} color={C.red} />
+              <StoryCard title="A12 · Difficult patient stories (nurses)" stories={stats.a12Stories} color={C.teal} />
+              <StoryCard title="A13 · Additional comments (nurses)" stories={stats.a13Comments} color={C.slate} />
             </div>
           </section>
         </div>
@@ -670,28 +713,31 @@ function DashboardContent({ stats, rawRows }: { stats: Stats; rawRows: SheetRow[
             <SectionHeader title="Part B — Physicians & Managers" icon="👨‍⚕️" />
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
               <KPICard icon="👥" label="Respondents" value={stats.partB} color={C.red} />
-              <KPICard icon="🎯" label="Avg Accuracy Satisfaction" value={avgAccB || "—"} sub="Triage accuracy (1–5)" color={C.red} />
-              <KPICard icon="📈" label="App Adoption Likelihood" value={avgSupportB ? `${avgSupportB}/5` : "—"} sub="Avg likelihood to support" color={C.green} />
-              <KPICard icon="⚠️" label="Top Concern" value={topAnswer(stats.qb8, LABELS.qb8)} color={C.amber} />
+              <KPICard icon="👁" label="Mis-Triage Frequency" value={topAnswer(stats.b1, LABELS.b1)} sub="Most common answer" color={C.red} />
+              <KPICard icon="💰" label="Top Consequence" value={topAnswer(stats.b2, LABELS.b2)} sub="Most selected (top-2)" color={C.amber} />
+              <KPICard icon="🔁" label="Re-assess Often+" value={pct(sumKeys(stats.b5, ["always", "often"]), stats.partB)} sub="Independent re-assessment" color={C.purple} />
             </div>
           </section>
 
           <section>
             <SectionHeader title="Triage Impact" icon="📊" />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <BarCard title="QB3 · Mis-triage frequency observed" data={countToBar(stats.qb3, LABELS.qb3)} color={C.red} />
-              <BarCard title="QB4 · Most common consequence of mis-triage" data={countToBar(stats.qb4, LABELS.qb4)} color={C.amber} />
-              <ScaleCard title="QB5 · Satisfaction with triage accuracy (1–5)" data={scaleToBar(stats.qb5, 1, 5)} avgVal={avgAccB} color={C.red} />
-              <BarCard title="QB6 · Does triage affect patient flow?" data={countToBar(stats.qb6, LABELS.qb6)} color={C.navy} />
+              <BarCard title="B1 · Mis-triage frequency observed" data={countToBar(stats.b1, LABELS.b1)} color={C.red} />
+              <BarCard title="B2 · Top-2 consequences of mis-triage" data={countToBar(stats.b2, LABELS.b2)} color={C.amber} />
+              <BarCard title="B3 · Actual cost of the last mis-triaged patient" data={countToBar(stats.b3, LABELS.b3)} color={C.purple} />
+              <BarCard title="B4 · Does triage affect patient flow?" data={countToBar(stats.b4, LABELS.b4)} color={C.navy} />
             </div>
           </section>
 
           <section>
-            <SectionHeader title="Decision Support Readiness" icon="🤖" />
+            <SectionHeader title="What Receivers Actually Do" icon="🩺" />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <BarCard title="QB7 · Would AI-assisted triage benefit the department?" data={countToBar(stats.qb7, LABELS.qb7)} color={C.green} />
-              <BarCard title="QB8 · Biggest concern about AI-assisted triage" data={countToBar(stats.qb8, LABELS.qb8)} color={C.purple} />
-              <ScaleCard title="QB9 · Likelihood to support AI triage tool adoption (1–5)" data={scaleToBar(stats.qb9, 1, 5)} avgVal={avgSupportB} color={C.green} />
+              <BarCard title="B5 · Independent CTAS re-assessment frequency" data={countToBar(stats.b5, LABELS.b5)} color={C.purple} />
+              <BarCard title="B6 · CTAS mismatch with clinical findings" data={countToBar(stats.b6, LABELS.b6)} color={C.red} />
+              <BarCard title="B8 · Typical action when a level seems wrong" data={countToBar(stats.b8, LABELS.b8)} color={C.navy} />
+              <BarCard title="B9 · Feedback given to triage nurse afterward" data={countToBar(stats.b9, LABELS.b9)} color={C.green} />
+              <StoryCard title="B7 · CTAS mismatch stories (receivers)" stories={stats.b7Stories} color={C.red} />
+              <StoryCard title="B10 · Additional comments (receivers)" stories={stats.b10Comments} color={C.slate} />
             </div>
           </section>
         </div>
@@ -736,10 +782,10 @@ function DashboardContent({ stats, rawRows }: { stats: Stats; rawRows: SheetRow[
               <div className="bg-white rounded-2xl border p-5 shadow-sm space-y-3" style={{ borderColor: C.border }}>
                 <p className="text-xs font-bold uppercase tracking-wider" style={{ color: C.teal }}>🏥 Nurse Readiness</p>
                 {[
-                  { label: "Want a decision-support tool", val: pct((stats.q9["yes"] ?? 0), stats.partA || 1) },
-                  { label: "Uncertain about CTAS 3+ times/month", val: pct(((stats.q5["3-5"] ?? 0) + (stats.q5["5+"] ?? 0)), stats.partA || 1) },
-                  { label: "Currently use no tool", val: pct(stats.q7["nothing"] ?? 0, stats.partA || 1) },
-                  { label: "Prefer mobile app format", val: pct(stats.q10["mobile"] ?? 0, stats.partA || 1) },
+                  { label: "Uncertain about CTAS 3+ times/month", val: pct(sumKeys(stats.a3, ["3-5", "5+"]), stats.partA || 1) },
+                  { label: "Uncertainty had a real consequence", val: pct(stats.partA - (stats.a5["nothing"] ?? 0) - (stats.a5["unknown"] ?? 0), stats.partA || 1) },
+                  { label: "Nothing structured at the station", val: pct(stats.a6["nothing"] ?? 0, stats.partA || 1) },
+                  { label: "Rarely/never receive feedback", val: pct(sumKeys(stats.a10, ["rarely", "never2"]), stats.partA || 1) },
                 ].map((item, i) => (
                   <div key={i} className="flex justify-between items-center text-sm">
                     <span style={{ color: C.slate }}>{item.label}</span>
@@ -750,12 +796,12 @@ function DashboardContent({ stats, rawRows }: { stats: Stats; rawRows: SheetRow[
 
               {/* Physician readiness */}
               <div className="bg-white rounded-2xl border p-5 shadow-sm space-y-3" style={{ borderColor: C.border }}>
-                <p className="text-xs font-bold uppercase tracking-wider" style={{ color: C.red }}>👨‍⚕️ Physician/Manager Readiness</p>
+                <p className="text-xs font-bold uppercase tracking-wider" style={{ color: C.red }}>👨‍⚕️ Receiver Problem Evidence</p>
                 {[
-                  { label: "See AI triage as beneficial", val: pct((stats.qb7["yes2"] ?? 0), stats.partB || 1) },
-                  { label: "Observe mis-triage daily/weekly", val: pct(((stats.qb3["daily"] ?? 0) + (stats.qb3["weekly"] ?? 0)), stats.partB || 1) },
-                  { label: "Report significant flow impact", val: pct(stats.qb6["yes-major"] ?? 0, stats.partB || 1) },
-                  { label: "No major AI concerns", val: pct(stats.qb8["noconcern"] ?? 0, stats.partB || 1) },
+                  { label: "Observe mis-triage daily/weekly", val: pct(sumKeys(stats.b1, ["daily", "weekly"]), stats.partB || 1) },
+                  { label: "Re-assess CTAS often or always", val: pct(sumKeys(stats.b5, ["always", "often"]), stats.partB || 1) },
+                  { label: "Report significant flow impact", val: pct(stats.b4["yes-major"] ?? 0, stats.partB || 1) },
+                  { label: "Rarely/never give feedback to nurses", val: pct(sumKeys(stats.b9, ["rarely", "never"]), stats.partB || 1) },
                 ].map((item, i) => (
                   <div key={i} className="flex justify-between items-center text-sm">
                     <span style={{ color: C.slate }}>{item.label}</span>
