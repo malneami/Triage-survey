@@ -329,6 +329,16 @@ export const PART_B_SECTIONS: Section[] = [
           { value: "no2",       en: "No impact",          ar: "لا تأثير",         emoji: "🟢" },
         ],
       },
+      {
+        id: "b11",
+        en: "How satisfied are you with the current triage process?",
+        ar: "ما مدى رضاك عن عملية الفرز الحالية؟",
+        type: "scale",
+        scaleMin: 1,
+        scaleMax: 5,
+        scaleMinLabel: { en: "Very dissatisfied", ar: "غير راضٍ جداً" },
+        scaleMaxLabel: { en: "Very satisfied", ar: "راضٍ تماماً" },
+      },
     ],
   },
   {
@@ -439,6 +449,7 @@ export const VALIDATION_RULES: Record<string, { id: string; type: "role" | "radi
     { id: "b2", type: "checkbox" },
     { id: "b3", type: "checkbox" },
     { id: "b4", type: "radio" },
+    { id: "b11", type: "scale" },
   ],
   "sec-B2": [
     { id: "b5", type: "radio" },
