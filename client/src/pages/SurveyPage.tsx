@@ -240,6 +240,12 @@ export default function SurveyPage() {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [errors, setErrors]   = useState<Record<string, boolean>>({});
   const [submitted, setSubmitted] = useState(false);
+  const [priorDone, setPriorDone] = useState<{ ts: string; part: string } | null>(() => {
+    try {
+      const raw = localStorage.getItem("hmg_survey_done");
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  });
   const topRef = useRef<HTMLDivElement>(null);
 
   // ── Flow ──────────────────────────────────────────────────────────────────
@@ -319,7 +325,12 @@ export default function SurveyPage() {
       hour: "2-digit", minute: "2-digit", second: "2-digit",
       hour12: false,
     }).format(new Date()).replace(",", "");
+    const sid =
+      typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
     const data: Record<string, string> = {
+      sid,
       timestamp: riyadhTime,
       part: part ?? "",
       ...answers,
@@ -336,10 +347,40 @@ export default function SurveyPage() {
       const url = `${WEBHOOK_URL}?${qs}`;
       fetch(url, { method: "GET", mode: "no-cors", keepalive: true }).catch(() => {});
     }
+    try {
+      localStorage.setItem("hmg_survey_done", JSON.stringify({ ts: riyadhTime, part }));
+    } catch { /* private mode */ }
     setSubmitted(true);
   }
 
   // ─── Thank You ─────────────────────────────────────────────────────────────
+
+  if (priorDone && !submitted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6" style={{ background: "#F5F7FA" }}>
+        <div className="max-w-md w-full bg-white rounded-2xl shadow-md border border-gray-100 p-8 text-center space-y-4">
+          <div className="text-4xl">✅</div>
+          <h2 className="text-lg font-bold text-gray-800">
+            {lang === "ar" ? "لقد أكملت هذا الاستبيان من قبل" : "You've already completed this survey"}
+          </h2>
+          <p className="text-sm text-gray-500 leading-relaxed">
+            {lang === "ar"
+              ? `تم استلام ردك (${priorDone.ts}). نحتاج رداً واحداً فقط من كل شخص للحفاظ على دقة النتائج.`
+              : `Your response was received (${priorDone.ts}). We only need one response per person to keep the results accurate.`}
+          </p>
+          <button
+            onClick={() => setPriorDone(null)}
+            className="text-xs text-gray-400 underline underline-offset-2 hover:text-gray-600"
+          >
+            {lang === "ar"
+              ? "شخص مختلف على نفس الجهاز؟ ابدأ رداً جديداً"
+              : "Different person on this device? Start a new response"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (submitted) {
     return (
       <div className="min-h-screen flex flex-col bg-[#F5F7F9]" ref={topRef}>

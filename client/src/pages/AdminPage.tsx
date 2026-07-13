@@ -60,6 +60,7 @@ interface Stats {
   b5: Record<string, number>; b6: Record<string, number>;
   b7: Record<string, number>; b8: Record<string, number>;
   b9: Record<string, number>; b10Comments: string[];
+  b11: number[];
 }
 
 // ─── Label Maps ───────────────────────────────────────────────────────────────
@@ -136,7 +137,7 @@ function buildStats(rows: SheetRow[]): Stats {
     a10: empty(), a11: empty(), a12: empty(), a13Comments: [],
     b1: empty(), b2: empty(), b3: empty(), b4: empty(),
     b5: empty(), b6: empty(), b7: empty(), b8: empty(),
-    b9: empty(), b10Comments: [],
+    b9: empty(), b10Comments: [], b11: [],
   };
   const inc = (obj: Record<string, number>, key: string) => {
     if (!key) return; obj[key] = (obj[key] ?? 0) + 1;
@@ -166,6 +167,7 @@ function buildStats(rows: SheetRow[]): Stats {
       inc(s.b1, row.b1); incMulti(s.b2, row.b2); incMulti(s.b3, row.b3);
       inc(s.b4, row.b4); inc(s.b5, row.b5); inc(s.b6, row.b6);
       inc(s.b7, row.b7); inc(s.b8, row.b8); inc(s.b9, row.b9);
+      push(s.b11, row.b11);
       story(s.b10Comments, row.b10);
     }
   });
@@ -507,6 +509,7 @@ function exportSummaryCSV(stats: Stats, goNoGo: ReturnType<typeof computeGoNoGo>
     ["Part B (Physicians/Managers)", stats.partB],
     ["Avg CTAS Confidence (A)", avg(stats.a8)],
     ["Avg Triage Satisfaction (A)", avg(stats.a9)],
+    ["Avg Triage Satisfaction (B)", avg(stats.b11)],
     ["Go/No-Go Composite Score", goNoGo.composite],
     ["Verdict", goNoGo.verdict],
     ["", ""],
@@ -566,6 +569,7 @@ function DashboardContent({ stats, rawRows }: { stats: Stats; rawRows: SheetRow[
   const goNoGo = computeGoNoGo(stats);
   const avgConf = avg(stats.a8);
   const avgSat = avg(stats.a9);
+  const avgSatB = avg(stats.b11);
   const dashRef = useRef<HTMLDivElement>(null);
 
   // Timeline
@@ -728,6 +732,7 @@ function DashboardContent({ stats, rawRows }: { stats: Stats; rawRows: SheetRow[
               <BarCard title="B2 · Top-2 consequences of mis-triage" data={countToBar(stats.b2, LABELS.b2)} color={C.amber} />
               <BarCard title="B3 · Actual cost of the last mis-triaged patient" data={countToBar(stats.b3, LABELS.b3)} color={C.purple} />
               <BarCard title="B4 · Does triage affect patient flow?" data={countToBar(stats.b4, LABELS.b4)} color={C.navy} />
+              <ScaleCard title="B11 · Satisfaction with current triage process (1–5)" data={scaleToBar(stats.b11, 1, 5)} avgVal={avgSatB} color={C.red} />
             </div>
           </section>
 
