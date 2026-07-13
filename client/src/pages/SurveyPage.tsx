@@ -11,6 +11,7 @@ import {
   WEBHOOK_URL,
   HMG_LOGO_URL,
   EXPERIENCE_OPTIONS,
+  FACILITY_OPTIONS,
   PART_A_SECTIONS,
   PART_B_SECTIONS,
   VALIDATION_RULES,
@@ -276,9 +277,9 @@ export default function SurveyPage() {
     setErrors((prev) => ({ ...prev, [id]: false }));
   }
 
-  function selectRole(p: Part) {
+  function selectRole(p: Part, roleValue: string) {
     setPart(p);
-    setAnswer("q1", p === "A" ? "nurse" : "receiver");
+    setAnswer("q1", roleValue);
     setErrors((prev) => ({ ...prev, q1: false }));
   }
 
@@ -446,8 +447,8 @@ export default function SurveyPage() {
             </h1>
             <p className="text-sm text-white/60 mb-5">
               {lang === "ar"
-                ? "مستشفى HMG التخصصي — قسم الطوارئ"
-                : "HMG Takhassusi Hospital — Emergency Department"}
+                ? "مجموعة د. سليمان الحبيب — أقسام الطوارئ"
+                : "Dr. Sulaiman Al Habib Medical Group — Emergency Departments"}
             </p>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
@@ -477,20 +478,23 @@ export default function SurveyPage() {
                 <span className="text-red-500 ml-1">*</span>
               </p>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {([
-                { p: "A" as Part, emoji: "🩺", en: "Triage Nurse", ar: "ممرض الفرز",
+                { p: "A" as Part, v: "pct", emoji: "🩺", en: "PCT", ar: "فني رعاية المرضى",
                   dEn: "I perform triage assessments", dAr: "أجري تقييمات الفرز",
-                  badge: { en: "Part A · 11 questions", ar: "الجزء أ · ١١ سؤالاً" }, badgeColor: "#E0F5F3", badgeText: "#0C8C81" },
-                { p: "B" as Part, emoji: "👨‍⚕️", en: "ED Physician / ED Nurse", ar: "طبيب طوارئ / ممرض طوارئ",
+                  badge: { en: "Part A · 13 questions", ar: "الجزء أ · ١٣ سؤالاً" }, badgeColor: "#E0F5F3", badgeText: "#0C8C81" },
+                { p: "B" as Part, v: "nurse", emoji: "🧑‍⚕️", en: "ED Nurse", ar: "ممرض طوارئ",
                   dEn: "I receive triaged patients", dAr: "أستقبل المرضى بعد الفرز",
-                  badge: { en: "Part B · 7 questions", ar: "الجزء ب · ٧ أسئلة" }, badgeColor: "#FDF5E0", badgeText: "#8A6000" },
+                  badge: { en: "Part B · 11 questions", ar: "الجزء ب · ١١ سؤالاً" }, badgeColor: "#FDF5E0", badgeText: "#8A6000" },
+                { p: "B" as Part, v: "physician", emoji: "👨‍⚕️", en: "ED Physician", ar: "طبيب طوارئ",
+                  dEn: "I receive triaged patients", dAr: "أستقبل المرضى بعد الفرز",
+                  badge: { en: "Part B · 11 questions", ar: "الجزء ب · ١١ سؤالاً" }, badgeColor: "#FDF5E0", badgeText: "#8A6000" },
               ] as const).map((role) => (
                 <div
-                  key={role.p}
-                  onClick={() => selectRole(role.p)}
+                  key={role.v}
+                  onClick={() => selectRole(role.p, role.v)}
                   className={`rounded-xl border-2 p-4 text-center cursor-pointer transition-all duration-200 ${
-                    part === role.p
+                    answers["q1"] === role.v
                       ? "border-[#0B2545] bg-blue-50 shadow-md"
                       : "border-gray-200 bg-white hover:border-teal-400 hover:-translate-y-0.5 hover:shadow-md"
                   }`}
@@ -535,6 +539,31 @@ export default function SurveyPage() {
               ))}
             </div>
             {errors["q2"] && (
+              <p className="text-xs text-red-500 mt-2">
+                {lang === "ar" ? "مطلوب" : "Required"}
+              </p>
+            )}
+          </div>
+
+          {/* Q3 — Facility */}
+          <div className={`bg-white rounded-2xl border p-5 ${errors["facility"] ? "border-red-300" : "border-gray-100"}`}>
+            <div className="flex items-start gap-2.5 mb-4">
+              <div className="w-6 h-6 rounded-lg flex items-center justify-center text-[11px] font-bold text-white flex-shrink-0 mt-0.5"
+                style={{ background: NAVY }}>3</div>
+              <p className="text-sm font-semibold leading-snug" style={{ color: NAVY }}>
+                {lang === "ar" ? "في أي منشأة تعمل؟" : "Which facility do you work in?"}
+                <span className="text-red-500 ml-1">*</span>
+              </p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {FACILITY_OPTIONS.map((opt) => (
+                <RadioOption key={opt.value} opt={opt} name="facility"
+                  checked={answers["facility"] === opt.value}
+                  onChange={() => setAnswer("facility", opt.value)}
+                  lang={lang} />
+              ))}
+            </div>
+            {errors["facility"] && (
               <p className="text-xs text-red-500 mt-2">
                 {lang === "ar" ? "مطلوب" : "Required"}
               </p>
