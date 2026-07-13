@@ -276,9 +276,9 @@ export default function SurveyPage() {
     setErrors((prev) => ({ ...prev, [id]: false }));
   }
 
-  function selectRole(p: Part, roleValue: string) {
+  function selectRole(p: Part) {
     setPart(p);
-    setAnswer("q1", roleValue);
+    setAnswer("q1", p === "A" ? "nurse" : "receiver");
     setErrors((prev) => ({ ...prev, q1: false }));
   }
 
@@ -477,23 +477,20 @@ export default function SurveyPage() {
                 <span className="text-red-500 ml-1">*</span>
               </p>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 gap-3">
               {([
-                { p: "A" as Part, v: "pct", emoji: "🩺", en: "PCT", ar: "فني رعاية المرضى",
+                { p: "A" as Part, emoji: "🩺", en: "Triage Nurse", ar: "ممرض الفرز",
                   dEn: "I perform triage assessments", dAr: "أجري تقييمات الفرز",
-                  badge: { en: "Part A · 13 questions", ar: "الجزء أ · ١٣ سؤالاً" }, badgeColor: "#E0F5F3", badgeText: "#0C8C81" },
-                { p: "B" as Part, v: "nurse", emoji: "🧑‍⚕️", en: "ED Nurse", ar: "ممرض طوارئ",
+                  badge: { en: "Part A · 11 questions", ar: "الجزء أ · ١١ سؤالاً" }, badgeColor: "#E0F5F3", badgeText: "#0C8C81" },
+                { p: "B" as Part, emoji: "👨‍⚕️", en: "ED Physician / ED Nurse", ar: "طبيب طوارئ / ممرض طوارئ",
                   dEn: "I receive triaged patients", dAr: "أستقبل المرضى بعد الفرز",
-                  badge: { en: "Part B · 11 questions", ar: "الجزء ب · ١١ سؤالاً" }, badgeColor: "#FDF5E0", badgeText: "#8A6000" },
-                { p: "B" as Part, v: "physician", emoji: "👨‍⚕️", en: "ED Physician", ar: "طبيب طوارئ",
-                  dEn: "I receive triaged patients", dAr: "أستقبل المرضى بعد الفرز",
-                  badge: { en: "Part B · 11 questions", ar: "الجزء ب · ١١ سؤالاً" }, badgeColor: "#FDF5E0", badgeText: "#8A6000" },
+                  badge: { en: "Part B · 7 questions", ar: "الجزء ب · ٧ أسئلة" }, badgeColor: "#FDF5E0", badgeText: "#8A6000" },
               ] as const).map((role) => (
                 <div
-                  key={role.v}
-                  onClick={() => selectRole(role.p, role.v)}
+                  key={role.p}
+                  onClick={() => selectRole(role.p)}
                   className={`rounded-xl border-2 p-4 text-center cursor-pointer transition-all duration-200 ${
-                    answers["q1"] === role.v
+                    part === role.p
                       ? "border-[#0B2545] bg-blue-50 shadow-md"
                       : "border-gray-200 bg-white hover:border-teal-400 hover:-translate-y-0.5 hover:shadow-md"
                   }`}

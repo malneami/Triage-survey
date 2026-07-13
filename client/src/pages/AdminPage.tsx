@@ -46,7 +46,6 @@ interface Stats {
   total: number; partA: number; partB: number;
   timestamps: string[];
   experience: Record<string, number>;
-  role: Record<string, number>;
   // Part A — nurses
   a1: Record<string, number>; a2: Record<string, number>;
   a3: Record<string, number>; a4: Record<string, number>;
@@ -77,7 +76,6 @@ const LABELS: Record<string, Record<string, string>> = {
   a7: { paper: "Paper CTAS card", screen: "Protocol on screen", colleague: "Experienced colleague", phone: "Reference on phone", none: "None of them" },
   a10: { regularly: "Regularly", sometimes: "Sometimes", rarely: "Rarely", never2: "Never" },
   a11: { training: "More training", staff: "More staff", tool2: "Better tool", protocol: "Clearer protocols", space: "Better space" },
-  role: { pct: "PCT (triage)", nurse: "ED Nurse", physician: "ED Physician", receiver: "Receiver (legacy)" },
   a12: { atypical: "Atypical presentation", borderline: "Borderline CTAS levels", peds: "Pediatric factors", language: "Language barrier", workload: "Workload/interruptions", incomplete: "Incomplete vitals/info", family: "Family pressure", none: "No difficult case" },
   b7: { under: "Under-triaged (sicker)", over: "Over-triaged (less sick)", both: "Both equally", na: "No mismatch seen" },
   b1: { daily: "Daily", weekly: "Weekly", monthly: "Monthly", rarely2: "Rarely" },
@@ -133,7 +131,7 @@ function buildStats(rows: SheetRow[]): Stats {
   const empty = (): Record<string, number> => ({});
   const s: Stats = {
     total: rows.length, partA: 0, partB: 0,
-    timestamps: [], experience: empty(), role: empty(),
+    timestamps: [], experience: empty(),
     a1: empty(), a2: empty(), a3: empty(), a4: empty(), a5: empty(),
     a6: empty(), a7: empty(), a8: [], a9: [],
     a10: empty(), a11: empty(), a12: empty(), a13Comments: [],
@@ -158,7 +156,6 @@ function buildStats(rows: SheetRow[]): Stats {
     if (part === "A") s.partA++; else if (part === "B") s.partB++;
     if (row.timestamp) s.timestamps.push(row.timestamp);
     inc(s.experience, row.experience);
-    inc(s.role, row.q1);
     if (part === "A") {
       inc(s.a1, row.a1); inc(s.a2, row.a2); inc(s.a3, row.a3);
       inc(s.a4, row.a4); inc(s.a5, row.a5);
@@ -492,21 +489,10 @@ function SignalRadar({ signals }: { signals: Signal[] }) {
 
 function exportCSV(stats: Stats, rows: SheetRow[]) {
   if (!rows.length) { alert("No data to export."); return; }
-  // Union of keys across ALL rows (Part A and Part B have different columns),
-  // in a stable, human-friendly order.
-  const keySet = new Set<string>();
-  rows.forEach((r) => Object.keys(r).forEach((k) => keySet.add(k)));
-  const preferred = ["timestamp", "part", "q1", "q2", "experience",
-    "a1","a2","a3","a4","a5","a6","a7","a8","a9","a10","a11","a12","a13",
-    "b1","b2","b3","b4","b11","b5","b6","b7","b8","b9","b10","sid"];
-  const headers = [
-    ...preferred.filter((k) => keySet.has(k)),
-    ...Array.from(keySet).filter((k) => !preferred.includes(k)),
-  ];
-  const cell = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  const headers = Object.keys(rows[0]);
   const csv = [
     headers.join(","),
-    ...rows.map((r) => headers.map((h) => cell(r[h])).join(",")),
+    ...rows.map(r => headers.map(h => `"${(r[h] ?? "").replace(/"/g, '""')}"`).join(","))
   ].join("\n");
   const blob = new Blob([csv], { type: "text/csv" });
   const url = URL.createObjectURL(blob);
@@ -625,8 +611,7 @@ function DashboardContent({ stats, rawRows }: { stats: Stats; rawRows: SheetRow[
                 {[
                   { icon: "⏱", label: "Avg Triage Confidence", value: avgConf ? `${avgConf}/5` : "—", color: C.teal },
                   { icon: "😊", label: "Avg Triage Satisfaction", value: avgSat ? `${avgSat}/5` : "—", color: C.navy },
-                  { icon: "🧑‍⚕️", label: "Top Respondent Role", value: topAnswer(stats.role, LABELS.role), color: C.navy },
-                  { icon: "🎯", label: "Top Challenge (Triage)", value: topAnswer(stats.a2, LABELS.a2), color: C.red },
+                  { icon: "🎯", label: "Top Challenge (Nurses)", value: topAnswer(stats.a2, LABELS.a2), color: C.red },
                   { icon: "⚡", label: "After Uncertainty", value: topAnswer(stats.a5, LABELS.a5), color: C.purple },
                   { icon: "👁", label: "Mis-Triage Seen (B)", value: topAnswer(stats.b1, LABELS.b1), color: C.red },
                   { icon: "🔁", label: "Feedback to Nurses (B)", value: topAnswer(stats.b9, LABELS.b9), color: C.green },
