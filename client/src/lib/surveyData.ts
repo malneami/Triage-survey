@@ -3,7 +3,7 @@
 // Survey ID: HMG/QID/1397
 
 export const WEBHOOK_URL =
-  "https://script.google.com/macros/s/AKfycbwM0TyzEoUW3PjYEAPqG9xumS7GSGs3wmOop8sMIXH2IqK1GVVrgxLwOjmao500PEg/exec";
+  "https://script.google.com/macros/s/AKfycbzubX7QMJSxTP-qZjuWDdiP03cDgGzLfI1WlSOZ8liAWnopPkK_XryhXs0y_5pwyq1qbg/exec";
 
 export const HMG_LOGO_URL = `${import.meta.env.BASE_URL}hmg-logo.jpg`;
 
@@ -54,6 +54,23 @@ export const EXPERIENCE_OPTIONS: Option[] = [
   { value: "4-7",  en: "4–7 years",        ar: "٤–٧ سنوات" },
   { value: "8+",   en: "8+ years",         ar: "٨+ سنوات" },
 ];
+
+export const FACILITY_OPTIONS: Option[] = [
+  { value: "olaya",       en: "Olaya Medical Complex",            ar: "مجمع العليا الطبي" },
+  { value: "rayan",       en: "Al Rayan Hospital",                ar: "مستشفى الريان" },
+  { value: "suwaidi",     en: "Al Suwaidi Hospital",              ar: "مستشفى السويدي" },
+  { value: "takhassusi",  en: "Takhassusi Hospital",              ar: "مستشفى التخصصي" },
+  { value: "sahafa",      en: "Al Sahafa Hospital",               ar: "مستشفى الصحافة" },
+  { value: "womens",      en: "Women's Health Hospital",          ar: "مستشفى صحة المرأة" },
+  { value: "hamra",       en: "Al Hamra Hospital",                ar: "مستشفى الحمراء" },
+  { value: "dq",          en: "Diplomatic Quarter Medical Center", ar: "المركز الطبي بالحي الدبلوماسي" },
+  { value: "digital",     en: "Digital City Medical Center",      ar: "مركز المدينة الرقمية الطبي" },
+  { value: "maternity",   en: "Maternity Hospital",               ar: "مستشفى الولادة" },
+  { value: "ortho",       en: "Orthopedic Hospital",              ar: "مستشفى العظام" },
+  { value: "narjis",      en: "Al Narjis Medical Center",         ar: "مركز النرجس الطبي" },
+  { value: "ghadir",      en: "Al Ghadir Medical Center",         ar: "مركز الغدير الطبي" },
+];
+
 
 // ─── Part A: Triage Nurses (a1–a13) ──────────────────────────────────────────
 
@@ -426,6 +443,7 @@ export const VALIDATION_RULES: Record<string, { id: string; type: "role" | "radi
   "sec-0": [
     { id: "q1", type: "role" },
     { id: "q2", type: "radio" },
+    { id: "facility", type: "radio" },
   ],
   "sec-A1": [
     { id: "a1", type: "radio" },
