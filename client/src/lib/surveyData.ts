@@ -3,7 +3,7 @@
 // Survey ID: HMG/QID/1397
 
 export const WEBHOOK_URL =
-  "https://script.google.com/macros/s/AKfycbzubX7QMJSxTP-qZjuWDdiP03cDgGzLfI1WlSOZ8liAWnopPkK_XryhXs0y_5pwyq1qbg/exec";
+  "https://script.google.com/macros/s/AKfycbyIE3wAlKGQxTQFEeTeryDWsQiG8CbqQnF0_rGrIziwuwy-g5iTLe2LoJjrRQ6Rk5mT/exec";
 
 export const HMG_LOGO_URL = `${import.meta.env.BASE_URL}hmg-logo.jpg`;
 
