@@ -13,7 +13,7 @@ import {
   ResponsiveContainer, Legend, LineChart, Line,
   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
 } from "recharts";
-import { BUILD_VERSION, RESPONSES_SHEET_ID, RESPONSES_TAB, HMG_LOGO_URL, WEBHOOK_URL } from "@/lib/surveyData";
+import { RESPONSES_GID, BUILD_VERSION, RESPONSES_SHEET_ID, RESPONSES_TAB, HMG_LOGO_URL, WEBHOOK_URL } from "@/lib/surveyData";
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
@@ -928,18 +928,29 @@ export default function AdminPage() {
   const fetchViaSheet = async () => {
     setLoading(true); setError("");
     try {
-      // Try known tab names until we find the one carrying the survey columns.
-      const candidates = [RESPONSES_TAB, "Form Responses 1", "ردود النموذج 1", "Form responses 1"].filter(Boolean);
-      let parsed: any = null; let cols: string[] = [];
-      for (const cand of candidates) {
-        const url = `https://docs.google.com/spreadsheets/d/${RESPONSES_SHEET_ID}/gviz/tq?tqx=out:json&headers=1&sheet=${encodeURIComponent(cand)}`;
-        const res = await fetch(url);
-        const text = await res.text();
-        const start = text.indexOf("{"); const end = text.lastIndexOf("}");
-        if (start === -1 || end === -1) continue;
-        const p2 = JSON.parse(text.slice(start, end + 1));
-        const c2: string[] = (p2.table?.cols ?? []).map((c: any) => String(c?.label ?? "").trim());
-        if (c2.includes("part")) { parsed = p2; cols = c2; break; }
+      // Candidate queries: exact gid first (deterministic), then tab names.
+      // Among valid candidates, keep the one with the MOST rows — several
+      // look-alike tabs with identical headers may exist.
+      const base = `https://docs.google.com/spreadsheets/d/${RESPONSES_SHEET_ID}/gviz/tq?tqx=out:json&headers=1`;
+      const queries: string[] = [];
+      if (RESPONSES_GID) queries.push(`${base}&gid=${RESPONSES_GID}`);
+      [RESPONSES_TAB, "ردود النموذج 1", "ردود النموذج 2", "ردود النموذج 3", "Form Responses 1", "Form responses 1"]
+        .filter(Boolean)
+        .forEach((t) => queries.push(`${base}&sheet=${encodeURIComponent(t as string)}`));
+      let parsed: any = null; let cols: string[] = []; let bestRows = -1;
+      for (const url of queries) {
+        try {
+          const res = await fetch(url);
+          const text = await res.text();
+          const start = text.indexOf("{"); const end = text.lastIndexOf("}");
+          if (start === -1 || end === -1) continue;
+          const p2 = JSON.parse(text.slice(start, end + 1));
+          const c2: string[] = (p2.table?.cols ?? []).map((c: any) => String(c?.label ?? "").trim());
+          if (!c2.includes("part")) continue;
+          const n = (p2.table?.rows ?? []).length;
+          if (n > bestRows) { parsed = p2; cols = c2; bestRows = n; }
+          if (bestRows > 0 && url.includes("&gid=")) break; // exact tab with data — done
+        } catch { /* try next */ }
       }
       if (!parsed) throw new Error("Responses tab not found — is the sheet link-shared as Viewer?");
       const rows: SheetRow[] = (parsed.table?.rows ?? []).map((r: any) => {
