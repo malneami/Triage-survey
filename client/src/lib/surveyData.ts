@@ -5,6 +5,8 @@
 export const WEBHOOK_URL =
   "https://script.google.com/macros/s/AKfycbyIE3wAlKGQxTQFEeTeryDWsQiG8CbqQnF0_rGrIziwuwy-g5iTLe2LoJjrRQ6Rk5mT/exec";
 
+export const BUILD_VERSION = "v4.1 · 2026-07-19";
+
 // ─── v4 transport: Google Form ingest + direct sheet read ────────────────────
 // FORM_ACTION + FORM_ENTRIES are printed by form-builder.gs (run once).
 // While FORM_ACTION is empty, the app falls back to the legacy webhook above.
