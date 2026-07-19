@@ -5,6 +5,25 @@
 export const WEBHOOK_URL =
   "https://script.google.com/macros/s/AKfycbyIE3wAlKGQxTQFEeTeryDWsQiG8CbqQnF0_rGrIziwuwy-g5iTLe2LoJjrRQ6Rk5mT/exec";
 
+// ─── v4 transport: Google Form ingest + direct sheet read ────────────────────
+// FORM_ACTION + FORM_ENTRIES are printed by form-builder.gs (run once).
+// While FORM_ACTION is empty, the app falls back to the legacy webhook above.
+export const FORM_ACTION = "https://docs.google.com/forms/d/e/1FAIpQLSex4-VxAlMDTm55xTDHYW_RkfArwK8vUIfXw3graVhoL6uAkA/formResponse";
+export const FORM_ENTRIES: Record<string, string> = {
+  part: "entry.58371988", q1: "entry.1542323812", q2: "entry.521859544", facility: "entry.1191328058",
+  a1: "entry.1330211836", a2: "entry.1181060293", a3: "entry.528969282", a4: "entry.688862444",
+  a5: "entry.188499477", a6: "entry.2031804083", a7: "entry.1442370427", a8: "entry.102197247",
+  a9: "entry.704758694", a10: "entry.1891801460", a11: "entry.1515299497", a12: "entry.492002431",
+  a13: "entry.1373967944",
+  b1: "entry.181014383", b2: "entry.2075571176", b3: "entry.844544446", b4: "entry.1651835813",
+  b5: "entry.1943994990", b6: "entry.1003774595", b7: "entry.1747577487", b8: "entry.713528764",
+  b9: "entry.206925277", b10: "entry.1317339447", b11: "entry.890915718",
+  timestamp: "entry.1985130848", sid: "entry.1578697401",
+};
+// Direct dashboard read (no web-app): spreadsheet must be link-shared as Viewer.
+export const RESPONSES_SHEET_ID = "11VYjCuuruf0sJ5_MqBKC-3cRJ-3TuG34SXVx1XNI7lg";
+export const RESPONSES_TAB = ""; // set after the Form creates its tab, e.g. "Form Responses 1"
+
 export const HMG_LOGO_URL = `${import.meta.env.BASE_URL}hmg-logo.jpg`;
 
 // ─── Types ───────────────────────────────────────────────────────────────────
