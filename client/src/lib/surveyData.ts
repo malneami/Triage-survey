@@ -5,7 +5,7 @@
 export const WEBHOOK_URL =
   "https://script.google.com/macros/s/AKfycbyIE3wAlKGQxTQFEeTeryDWsQiG8CbqQnF0_rGrIziwuwy-g5iTLe2LoJjrRQ6Rk5mT/exec";
 
-export const BUILD_VERSION = "v4.1 · 2026-07-19";
+export const BUILD_VERSION = "v4.2 · 2026-07-19";
 
 // ─── v4 transport: Google Form ingest + direct sheet read ────────────────────
 // FORM_ACTION + FORM_ENTRIES are printed by form-builder.gs (run once).
@@ -25,6 +25,8 @@ export const FORM_ENTRIES: Record<string, string> = {
 // Direct dashboard read (no web-app): spreadsheet must be link-shared as Viewer.
 export const RESPONSES_SHEET_ID = "11VYjCuuruf0sJ5_MqBKC-3cRJ-3TuG34SXVx1XNI7lg";
 export const RESPONSES_TAB = "Form Responses 1";
+// Exact tab: the gid from the responses tab URL — immune to name ambiguity.
+export const RESPONSES_GID = "350242020";
 
 export const HMG_LOGO_URL = `${import.meta.env.BASE_URL}hmg-logo.jpg`;
 
