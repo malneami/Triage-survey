@@ -7,7 +7,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FORM_ACTION, FORM_ENTRIES, WEBHOOK_URL,
+import { BUILD_VERSION, FORM_ACTION, FORM_ENTRIES, WEBHOOK_URL,
   HMG_LOGO_URL,
   EXPERIENCE_OPTIONS,
   FACILITY_OPTIONS,
@@ -420,7 +420,7 @@ export default function SurveyPage() {
                 ? "تم تسجيل إجاباتك بنجاح. مساهمتك تساعد في تحسين جودة الفرز في قسم الطوارئ."
                 : "Your responses have been recorded. Your input helps improve triage quality in the Emergency Department."}
             </p>
-            <p className="text-xs text-gray-400 mt-6 font-mono">HMG / QID / 1397</p>
+            <p className="text-xs text-gray-400 mt-6 font-mono">HMG / QID / 1397 · {BUILD_VERSION}</p>
           </motion.div>
         </div>
         <SurveyFooter lang={lang} />

@@ -13,7 +13,7 @@ import {
   ResponsiveContainer, Legend, LineChart, Line,
   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
 } from "recharts";
-import { RESPONSES_SHEET_ID, RESPONSES_TAB, HMG_LOGO_URL, WEBHOOK_URL } from "@/lib/surveyData";
+import { BUILD_VERSION, RESPONSES_SHEET_ID, RESPONSES_TAB, HMG_LOGO_URL, WEBHOOK_URL } from "@/lib/surveyData";
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
@@ -1065,7 +1065,7 @@ export default function AdminPage() {
               <div className="hidden sm:block h-5 w-px opacity-30" style={{ background: "#fff" }} />
               <div className="hidden sm:block">
                 <p className="text-xs font-bold text-white leading-none">HMG Triage Analytics</p>
-                <p className="text-xs opacity-60 text-white leading-none mt-0.5">HMG/QID/1397 · Decision Dashboard</p>
+                <p className="text-xs opacity-60 text-white leading-none mt-0.5">HMG/QID/1397 · Decision Dashboard · {BUILD_VERSION}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
