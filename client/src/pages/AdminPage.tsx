@@ -932,7 +932,7 @@ export default function AdminPage() {
       const candidates = [RESPONSES_TAB, "Form Responses 1", "ردود النموذج 1", "Form responses 1"].filter(Boolean);
       let parsed: any = null; let cols: string[] = [];
       for (const cand of candidates) {
-        const url = `https://docs.google.com/spreadsheets/d/${RESPONSES_SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(cand)}`;
+        const url = `https://docs.google.com/spreadsheets/d/${RESPONSES_SHEET_ID}/gviz/tq?tqx=out:json&headers=1&sheet=${encodeURIComponent(cand)}`;
         const res = await fetch(url);
         const text = await res.text();
         const start = text.indexOf("{"); const end = text.lastIndexOf("}");
@@ -962,7 +962,7 @@ export default function AdminPage() {
   };
 
   const fetchData = () => {
-    if (RESPONSES_SHEET_ID && RESPONSES_TAB) { fetchViaSheet(); return; }
+    if (RESPONSES_SHEET_ID) { fetchViaSheet(); return; }
     setLoading(true);
     setError(null);
     const cbName = `_tpAdmin_${Date.now()}`;
