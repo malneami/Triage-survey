@@ -22,7 +22,7 @@ export const FORM_ENTRIES: Record<string, string> = {
 };
 // Direct dashboard read (no web-app): spreadsheet must be link-shared as Viewer.
 export const RESPONSES_SHEET_ID = "11VYjCuuruf0sJ5_MqBKC-3cRJ-3TuG34SXVx1XNI7lg";
-export const RESPONSES_TAB = ""; // set after the Form creates its tab, e.g. "Form Responses 1"
+export const RESPONSES_TAB = "Form Responses 1";
 
 export const HMG_LOGO_URL = `${import.meta.env.BASE_URL}hmg-logo.jpg`;
 
