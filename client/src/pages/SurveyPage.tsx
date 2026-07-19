@@ -7,8 +7,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  WEBHOOK_URL,
+import { FORM_ACTION, FORM_ENTRIES, WEBHOOK_URL,
   HMG_LOGO_URL,
   EXPERIENCE_OPTIONS,
   FACILITY_OPTIONS,
@@ -345,8 +344,25 @@ export default function SurveyPage() {
       const qs = Object.entries(data)
         .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v ?? "")}`)
         .join("&");
-      const url = `${WEBHOOK_URL}?${qs}`;
-      fetch(url, { method: "GET", mode: "no-cors", keepalive: true }).catch(() => {});
+      if (FORM_ACTION && Object.keys(FORM_ENTRIES).length > 0) {
+        // v4: post into the hidden Google Form (anonymous-safe by design)
+        const body = new URLSearchParams();
+        Object.entries(data).forEach(([k, v]) => {
+          const entry = FORM_ENTRIES[k];
+          if (entry && v != null && v !== "") body.append(entry, v);
+        });
+        fetch(FORM_ACTION, {
+          method: "POST",
+          mode: "no-cors",
+          keepalive: true,
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: body.toString(),
+        }).catch(() => {});
+      } else {
+        // legacy webhook fallback
+        const url = `${WEBHOOK_URL}?${qs}`;
+        fetch(url, { method: "GET", mode: "no-cors", keepalive: true }).catch(() => {});
+      }
     }
     try {
       localStorage.setItem("hmg_survey_done", JSON.stringify({ ts: riyadhTime, part }));
