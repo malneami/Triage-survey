@@ -111,7 +111,7 @@ export default function QRPage() {
         {/* Footer */}
         <div className="h-px bg-[oklch(0.91_0.01_255)]" />
         <p className="text-xs text-[oklch(0.62_0.015_255)]">
-          HMG Takhassusi Hospital — Emergency Department
+          Dr. Sulaiman Al Habib Medical Group — Emergency Departments
           <br />
           مستشفى التخصصي HMG — قسم الطوارئ
         </p>
