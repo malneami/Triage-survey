@@ -7,7 +7,7 @@
 import { QRCodeSVG } from "qrcode.react";
 import { HMG_LOGO_URL } from "@/lib/surveyData";
 
-const SURVEY_URL = "https://triagesurvey-ekvaudwt.manus.space";
+const SURVEY_URL = "https://malneami.github.io/Triage-survey/";
 
 export default function QRPage() {
   const handlePrint = () => window.print();
